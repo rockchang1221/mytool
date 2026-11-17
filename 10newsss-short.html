@@ -225,7 +225,7 @@
             
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.font = `bold 70px ${fontFamily}`; // 字體大小減半 (140 -> 70)
+            ctx.font = `70px ${fontFamily}`; // 移除預設的 bold，完全尊重匯入字體的原始粗細
 
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
