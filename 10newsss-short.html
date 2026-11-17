@@ -124,9 +124,9 @@
     </div>
 
     <!-- 右側預覽面板 -->
-    <div class="flex-1 bg-gray-950 checker-bg p-4 md:p-8 flex justify-center items-center min-h-[60vh] md:h-screen relative">
-        <!-- 畫布容器，保持 9:16 比例，並且響應式縮放 -->
-        <div class="w-full max-w-[320px] sm:max-w-[400px] md:max-w-[500px] aspect-[9/16] relative shadow-2xl rounded-lg overflow-hidden flex items-center justify-center bg-black mx-auto">
+    <div class="flex-1 bg-gray-950 checker-bg p-4 md:p-8 flex justify-center items-center min-h-[60vh] md:h-screen md:overflow-hidden relative">
+        <!-- 畫布容器，保持 9:16 比例。使用 css 的 max-height 確保高度不超出畫面，解決平板與手機上的上下裁切問題 -->
+        <div class="relative shadow-2xl rounded-lg overflow-hidden flex items-center justify-center bg-black mx-auto" style="aspect-ratio: 9/16; max-width: 100%; max-height: 85vh;">
             <!-- 實際渲染的 Canvas (內部解析度 1080x1920)，新增拖曳指標與 touch-none 避免手機誤滑 -->
             <canvas id="previewCanvas" width="1080" height="1920" class="w-full h-full object-contain cursor-grab active:cursor-grabbing touch-none"></canvas>
         </div>
@@ -389,27 +389,73 @@
         canvas.addEventListener('touchmove', handlePointerMove, { passive: false });
         window.addEventListener('touchend', handlePointerUp);
 
-        // --- 字體處理 (LocalStorage) ---
+        // --- 字體處理 (改用 IndexedDB 解決 LocalStorage 5MB 限制) ---
+        const DB_NAME = 'ThumbnailFontDB';
+        const STORE_NAME = 'fonts';
+
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, 1);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME);
+                    }
+                };
+                request.onsuccess = (e) => resolve(e.target.result);
+                request.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        async function saveFontToDB(fontName, arrayBuffer) {
+            const db = await openDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readwrite');
+                const store = tx.objectStore(STORE_NAME);
+                store.put({ name: fontName, data: arrayBuffer }, 'customFont');
+                tx.oncomplete = () => resolve();
+                tx.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        async function getFontFromDB() {
+            const db = await openDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readonly');
+                const store = tx.objectStore(STORE_NAME);
+                const request = store.get('customFont');
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        async function deleteFontFromDB() {
+            const db = await openDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readwrite');
+                const store = tx.objectStore(STORE_NAME);
+                store.delete('customFont');
+                tx.oncomplete = () => resolve();
+                tx.onerror = (e) => reject(e.target.error);
+            });
+        }
 
         // 載入已儲存的字體
         async function loadSavedFont() {
-            const savedFont = localStorage.getItem('customThumbnailFontData');
-            const savedFontName = localStorage.getItem('customThumbnailFontName');
-            
-            if (savedFont && savedFontName) {
-                try {
-                    const font = new FontFace('CustomThumbnailFont', `url(${savedFont})`);
+            try {
+                const savedFont = await getFontFromDB();
+                if (savedFont && savedFont.data) {
+                    const font = new FontFace('CustomThumbnailFont', savedFont.data);
                     await font.load();
                     document.fonts.add(font);
-                    inputs.fontStatus.textContent = `目前使用：已儲存的自訂字體 (${savedFontName})`;
+                    inputs.fontStatus.textContent = `目前使用：已儲存的自訂字體 (${savedFont.name})`;
                     inputs.fontStatus.className = "mt-2 text-xs text-green-400 font-medium";
                     inputs.clearFontBtn.classList.remove('hidden');
                     drawCanvas();
-                } catch (e) {
-                    console.error('載入儲存的字體失敗:', e);
-                    localStorage.removeItem('customThumbnailFontData');
-                    localStorage.removeItem('customThumbnailFontName');
                 }
+            } catch (e) {
+                console.error('載入儲存的字體失敗:', e);
+                deleteFontFromDB(); // 若資料毀損則自動清除
             }
         }
 
@@ -419,45 +465,36 @@
             if (!file) return;
 
             const reader = new FileReader();
+            // 改用 ArrayBuffer 讀取，直接避開 base64 轉換，並完美適配 IndexedDB
             reader.onload = async (event) => {
-                const base64Font = event.target.result;
+                const arrayBuffer = event.target.result;
                 try {
-                    // 嘗試儲存到 LocalStorage (注意：大檔案可能會超出 5MB 限制)
-                    localStorage.setItem('customThumbnailFontData', base64Font);
-                    localStorage.setItem('customThumbnailFontName', file.name);
-                    
-                    const font = new FontFace('CustomThumbnailFont', `url(${base64Font})`);
+                    // 1. 載入字體到網頁中
+                    const font = new FontFace('CustomThumbnailFont', arrayBuffer);
                     await font.load();
                     document.fonts.add(font);
+                    
+                    // 2. 儲存到 IndexedDB (突破 LocalStorage 容量限制)
+                    await saveFontToDB(file.name, arrayBuffer);
                     
                     inputs.fontStatus.textContent = `目前使用：${file.name}`;
                     inputs.fontStatus.className = "mt-2 text-xs text-green-400 font-medium";
                     inputs.clearFontBtn.classList.remove('hidden');
+                    inputs.errorMsg.classList.add('hidden'); // 若成功則隱藏舊錯誤
                     drawCanvas();
                     
                 } catch (err) {
-                    if (err.name === 'QuotaExceededError') {
-                        showError('字體檔案過大，無法儲存到 LocalStorage，但本次仍可使用。');
-                        // 依然嘗試套用，但不存檔
-                        const font = new FontFace('CustomThumbnailFont', `url(${base64Font})`);
-                        await font.load().then((loadedFont) => {
-                            document.fonts.add(loadedFont);
-                            inputs.fontStatus.textContent = `目前使用：${file.name} (未儲存)`;
-                            drawCanvas();
-                        }).catch(e => console.error(e));
-                    } else {
-                        showError('字體載入失敗，請確認檔案格式正確。');
-                        console.error(err);
-                    }
+                    showError('字體載入或儲存失敗，請確認檔案格式是否正確。');
+                    console.error(err);
                 }
             };
-            reader.readAsDataURL(file);
+            reader.readAsArrayBuffer(file);
         });
 
         // 清除字體
-        inputs.clearFontBtn.addEventListener('click', () => {
-            localStorage.removeItem('customThumbnailFontData');
-            localStorage.removeItem('customThumbnailFontName');
+        inputs.clearFontBtn.addEventListener('click', async () => {
+            await deleteFontFromDB(); // 從資料庫中刪除
+            
             document.fonts.forEach((font) => {
                 if (font.family === 'CustomThumbnailFont') {
                     document.fonts.delete(font);
