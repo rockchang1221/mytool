@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>9:16 縮圖快速產生器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        /* 自訂卷軸樣式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+        /* 預覽區背景網格，方便看清圖片邊界 */
+        .checker-bg {
+            background-image: 
+                linear-gradient(45deg, #1f2937 25%, transparent 25%), 
+                linear-gradient(-45deg, #1f2937 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #1f2937 75%), 
+                linear-gradient(-45deg, transparent 75%, #1f2937 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col md:flex-row">
+
+    <!-- 左側控制面板 -->
+    <div class="w-full md:w-96 bg-gray-800 p-6 flex flex-col gap-5 shadow-2xl z-10 md:h-screen md:overflow-y-auto shrink-0 border-b md:border-b-0 md:border-r border-gray-700">
+        <div>
+            <h1 class="text-2xl font-bold text-white mb-1">9:16 縮圖產生器</h1>
+            <p class="text-sm text-gray-400">快速製作 IG Reels / YT Shorts 封面</p>
+        </div>
+
+        <!-- 錯誤訊息提示區 -->
+        <div id="errorMsg" class="hidden bg-red-500/20 border border-red-500 text-red-300 px-4 py-3 rounded-lg text-sm transition-all">
+            <!-- 錯誤訊息會顯示在這裡 -->
+        </div>
+
+        <!-- 圖片來源設定 -->
+        <div class="space-y-3">
+            <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wider border-b border-gray-700 pb-1">1. 圖片與遮罩設定</h2>
+            
+            <div>
+                <label class="block text-sm font-medium mb-1 text-gray-400">遮罩透明度 (<span id="opacityVal">50</span>%)</label>
+                <input type="range" id="maskOpacity" min="0" max="100" value="50" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium mb-1 text-gray-400">網路圖片網址 (URL)</label>
+                <input type="text" id="imgUrl" placeholder="https://..." class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+            </div>
+
+            <div class="flex items-center gap-2">
+                <span class="text-gray-500 text-xs w-full text-center">—— 或 ——</span>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium mb-1 text-gray-400">上傳本機圖片 <span class="text-xs text-blue-400">(推薦，無 CORS 問題)</span></label>
+                <input type="file" id="localImg" accept="image/*" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer">
+            </div>
+        </div>
+
+        <!-- 文字設定 -->
+        <div class="space-y-3">
+            <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wider border-b border-gray-700 pb-1">2. 文字內容</h2>
+            
+            <div>
+                <div class="flex justify-between items-center mb-1">
+                    <label class="block text-sm font-medium text-gray-400">第一行文字</label>
+                    <div class="flex items-center gap-1.5">
+                        <input type="checkbox" id="text1Yellow" class="w-3.5 h-3.5 text-yellow-500 bg-gray-800 border-gray-600 rounded focus:ring-yellow-500 cursor-pointer">
+                        <label for="text1Yellow" class="text-xs font-medium text-gray-400 cursor-pointer">黃色</label>
+                    </div>
+                </div>
+                <input type="text" id="text1" placeholder="輸入主標題" value="主標題文字" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+            </div>
+            
+            <div>
+                <div class="flex justify-between items-center mb-1">
+                    <label class="block text-sm font-medium text-gray-400">第二行文字</label>
+                    <div class="flex items-center gap-1.5">
+                        <input type="checkbox" id="text2Yellow" class="w-3.5 h-3.5 text-yellow-500 bg-gray-800 border-gray-600 rounded focus:ring-yellow-500 cursor-pointer">
+                        <label for="text2Yellow" class="text-xs font-medium text-gray-400 cursor-pointer">黃色</label>
+                    </div>
+                </div>
+                <input type="text" id="text2" placeholder="輸入副標題" value="副標題文字" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+            </div>
+        </div>
+
+        <!-- 字體設定 -->
+        <div class="space-y-3">
+            <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wider border-b border-gray-700 pb-1">3. 字體設定 (自動儲存)</h2>
+            
+            <div>
+                <label class="block text-sm font-medium mb-1 text-gray-400">匯入字體檔案 (.ttf, .otf, .woff)</label>
+                <input type="file" id="fontFile" accept=".ttf,.otf,.woff" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-700 file:text-white hover:file:bg-gray-600 cursor-pointer">
+                <p id="fontStatus" class="mt-2 text-xs text-green-400 font-medium">目前使用：系統預設字體</p>
+                <button id="clearFontBtn" class="mt-2 text-xs text-red-400 hover:text-red-300 hidden">清除自訂字體</button>
+            </div>
+        </div>
+
+        <div class="flex-grow"></div>
+
+        <!-- 下載按鈕 -->
+        <button id="downloadBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3.5 rounded-xl shadow-lg transform transition-all active:scale-95 flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            下載縮圖 (1080x1920)
+        </button>
+    </div>
+
+    <!-- 右側預覽面板 -->
+    <div class="flex-1 bg-gray-950 checker-bg p-4 md:p-8 flex justify-center items-center min-h-[60vh] md:h-screen relative">
+        <!-- 畫布容器，保持 9:16 比例，並且響應式縮放 -->
+        <div class="w-full max-w-[320px] sm:max-w-[400px] md:max-w-[500px] aspect-[9/16] relative shadow-2xl rounded-lg overflow-hidden flex items-center justify-center bg-black mx-auto">
+            <!-- 實際渲染的 Canvas (內部解析度 1080x1920)，新增拖曳指標與 touch-none 避免手機誤滑 -->
+            <canvas id="previewCanvas" width="1080" height="1920" class="w-full h-full object-contain cursor-grab active:cursor-grabbing touch-none"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('previewCanvas');
+        const ctx = canvas.getContext('2d');
+        const currentImg = new Image();
+        currentImg.crossOrigin = "anonymous"; // 允許跨域圖片繪製與下載
+
+        // 照片拖曳狀態變數
+        let imgX = 0, imgY = 0, imgW = 0, imgH = 0;
+        let isDragging = false, startX = 0, startY = 0, initX = 0, initY = 0;
+        let snapX = null, snapY = null;
+        
+        // 偵測是否為行動裝置
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+        // DOM 元素
+        const inputs = {
+            imgUrl: document.getElementById('imgUrl'),
+            localImg: document.getElementById('localImg'),
+            maskOpacity: document.getElementById('maskOpacity'),
+            opacityVal: document.getElementById('opacityVal'),
+            text1: document.getElementById('text1'),
+            text1Yellow: document.getElementById('text1Yellow'),
+            text2: document.getElementById('text2'),
+            text2Yellow: document.getElementById('text2Yellow'),
+            fontFile: document.getElementById('fontFile'),
+            downloadBtn: document.getElementById('downloadBtn'),
+            clearFontBtn: document.getElementById('clearFontBtn'),
+            fontStatus: document.getElementById('fontStatus'),
+            errorMsg: document.getElementById('errorMsg')
+        };
+
+        // 顯示訊息處理
+        function showError(msg) {
+            inputs.errorMsg.textContent = msg;
+            inputs.errorMsg.classList.remove('hidden');
+            setTimeout(() => inputs.errorMsg.classList.add('hidden'), 5000);
+        }
+
+        // 核心繪製功能
+        function drawCanvas() {
+            // 1. 清空畫布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#111'; // 預設背景底色
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 2. 處理圖片與拖曳
+            if (currentImg.src && currentImg.complete && currentImg.naturalWidth > 0) {
+                // 畫上圖片
+                ctx.drawImage(currentImg, imgX, imgY, imgW, imgH);
+            }
+
+            // 3. 蓋上自訂透明度的黑色遮罩
+            const opacity = inputs.maskOpacity ? (inputs.maskOpacity.value / 100) : 0.5;
+            ctx.fillStyle = `rgba(0, 0, 0, ${opacity})`;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 繪製對齊輔助線 (在遮罩上方比較清楚)
+            if (isDragging) {
+                ctx.strokeStyle = '#3b82f6'; // 藍色輔助線
+                ctx.lineWidth = 4;
+                ctx.setLineDash([15, 15]);
+                
+                if (snapX !== null) {
+                    ctx.beginPath();
+                    ctx.moveTo(snapX, 0);
+                    ctx.lineTo(snapX, canvas.height);
+                    ctx.stroke();
+                }
+                if (snapY !== null) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, snapY);
+                    ctx.lineTo(canvas.width, snapY);
+                    ctx.stroke();
+                }
+                ctx.setLineDash([]); // 恢復實線設定
+            }
+
+            // 4. 繪製置中文字
+            const t1 = inputs.text1.value;
+            const t2 = inputs.text2.value;
+
+            // 檢查自訂字體是否載入
+            let hasCustomFont = false;
+            document.fonts.forEach((font) => {
+                if (font.family === 'CustomThumbnailFont') {
+                    hasCustomFont = true;
+                }
+            });
+
+            const fontFamily = hasCustomFont ? 'CustomThumbnailFont, sans-serif' : 'sans-serif';
+            
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = `bold 70px ${fontFamily}`; // 字體大小減半 (140 -> 70)
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const lineSpacing = 45; // 行距減半 (90 -> 45)
+
+            // 根據有沒有兩行文字來決定垂直位置
+            if (t1 && t2) {
+                ctx.fillStyle = inputs.text1Yellow.checked ? '#f0ed0a' : '#ffffff';
+                ctx.fillText(t1, centerX, centerY - lineSpacing);
+                ctx.fillStyle = inputs.text2Yellow.checked ? '#f0ed0a' : '#ffffff';
+                ctx.fillText(t2, centerX, centerY + lineSpacing);
+            } else if (t1) {
+                ctx.fillStyle = inputs.text1Yellow.checked ? '#f0ed0a' : '#ffffff';
+                ctx.fillText(t1, centerX, centerY);
+            } else if (t2) {
+                ctx.fillStyle = inputs.text2Yellow.checked ? '#f0ed0a' : '#ffffff';
+                ctx.fillText(t2, centerX, centerY);
+            }
+        }
+
+        // --- 事件監聽區 ---
+
+        // 遮罩透明度與文字設定改變時重繪
+        inputs.maskOpacity.addEventListener('input', (e) => {
+            inputs.opacityVal.textContent = e.target.value;
+            drawCanvas();
+        });
+        inputs.text1Yellow.addEventListener('change', drawCanvas);
+        inputs.text2Yellow.addEventListener('change', drawCanvas);
+
+        // 文字改變時重繪
+        inputs.text1.addEventListener('input', drawCanvas);
+        inputs.text2.addEventListener('input', drawCanvas);
+
+        // 網路圖片 URL 載入
+        inputs.imgUrl.addEventListener('input', (e) => {
+            const url = e.target.value.trim();
+            if (!url) {
+                currentImg.src = '';
+                drawCanvas();
+                return;
+            }
+            currentImg.src = url;
+        });
+
+        // 本機圖片載入
+        inputs.localImg.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                currentImg.src = event.target.result;
+                inputs.imgUrl.value = ''; // 清空 URL 欄位
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // 圖片載入完成與失敗處理
+        currentImg.onload = () => {
+            // 初始化圖片位置與大小，預設滿版置中
+            const imgRatio = currentImg.naturalWidth / currentImg.naturalHeight;
+            const canvasRatio = canvas.width / canvas.height;
+
+            if (imgRatio > canvasRatio) {
+                // 圖片比較寬，以高度為基準撐滿
+                imgH = canvas.height;
+                imgW = canvas.height * imgRatio;
+            } else {
+                // 圖片比較高，以寬度為基準撐滿
+                imgW = canvas.width;
+                imgH = canvas.width / imgRatio;
+            }
+            // 初始置中
+            imgX = (canvas.width - imgW) / 2;
+            imgY = (canvas.height - imgH) / 2;
+
+            drawCanvas();
+        };
+
+        currentImg.onerror = () => {
+            if(currentImg.src && !currentImg.src.startsWith('data:')) {
+                showError('無法載入網路圖片，可能是受到 CORS 安全限制。請將圖片下載後，使用「上傳本機圖片」功能。');
+                currentImg.src = '';
+                drawCanvas();
+            }
+        };
+
+        // --- 拖曳與吸附控制 (Drag & Snap) ---
+        const getPointerPos = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = (e.touches && e.touches.length > 0) ? e.touches[0].clientX : e.clientX;
+            const clientY = (e.touches && e.touches.length > 0) ? e.touches[0].clientY : e.clientY;
+            return {
+                x: (clientX - rect.left) * (canvas.width / rect.width),
+                y: (clientY - rect.top) * (canvas.height / rect.height)
+            };
+        };
+
+        const handlePointerDown = (e) => {
+            if (!currentImg.src || !currentImg.complete) return;
+            isDragging = true;
+            const pos = getPointerPos(e);
+            startX = pos.x;
+            startY = pos.y;
+            initX = imgX;
+            initY = imgY;
+        };
+
+        const handlePointerMove = (e) => {
+            if (!isDragging) return;
+            e.preventDefault(); // 防止手機端滑動螢幕，確保流暢拖曳
+            
+            const pos = getPointerPos(e);
+            const dx = pos.x - startX;
+            const dy = pos.y - startY;
+            
+            let newX = initX + dx;
+            let newY = initY + dy;
+            
+            // 吸附邏輯 (Snapping)
+            const snapThreshold = 60; // 內部解析度的吸附閾值 (60px 對於 1080p 來說手感滿好的)
+            snapX = null;
+            snapY = null;
+            
+            // X 軸邊緣與中心吸附
+            const centerX = (canvas.width - imgW) / 2;
+            const rightX = canvas.width - imgW;
+            
+            if (Math.abs(newX - 0) < snapThreshold) { newX = 0; snapX = 0; }
+            else if (Math.abs(newX - centerX) < snapThreshold) { newX = centerX; snapX = canvas.width / 2; }
+            else if (Math.abs(newX - rightX) < snapThreshold) { newX = rightX; snapX = canvas.width; }
+            
+            // Y 軸邊緣與中心吸附
+            const centerY = (canvas.height - imgH) / 2;
+            const bottomY = canvas.height - imgH;
+            
+            if (Math.abs(newY - 0) < snapThreshold) { newY = 0; snapY = 0; }
+            else if (Math.abs(newY - centerY) < snapThreshold) { newY = centerY; snapY = canvas.height / 2; }
+            else if (Math.abs(newY - bottomY) < snapThreshold) { newY = bottomY; snapY = canvas.height; }
+            
+            imgX = newX;
+            imgY = newY;
+            
+            drawCanvas();
+        };
+
+        const handlePointerUp = () => {
+            isDragging = false;
+            snapX = null;
+            snapY = null;
+            drawCanvas(); // 清除輔助線
+        };
+
+        // 綁定滑鼠事件
+        canvas.addEventListener('mousedown', handlePointerDown);
+        canvas.addEventListener('mousemove', handlePointerMove);
+        window.addEventListener('mouseup', handlePointerUp); // 在視窗任何地方放開都停止
+
+        // 綁定觸控事件
+        canvas.addEventListener('touchstart', handlePointerDown, { passive: false });
+        canvas.addEventListener('touchmove', handlePointerMove, { passive: false });
+        window.addEventListener('touchend', handlePointerUp);
+
+        // --- 字體處理 (LocalStorage) ---
+
+        // 載入已儲存的字體
+        async function loadSavedFont() {
+            const savedFont = localStorage.getItem('customThumbnailFontData');
+            const savedFontName = localStorage.getItem('customThumbnailFontName');
+            
+            if (savedFont && savedFontName) {
+                try {
+                    const font = new FontFace('CustomThumbnailFont', `url(${savedFont})`);
+                    await font.load();
+                    document.fonts.add(font);
+                    inputs.fontStatus.textContent = `目前使用：已儲存的自訂字體 (${savedFontName})`;
+                    inputs.fontStatus.className = "mt-2 text-xs text-green-400 font-medium";
+                    inputs.clearFontBtn.classList.remove('hidden');
+                    drawCanvas();
+                } catch (e) {
+                    console.error('載入儲存的字體失敗:', e);
+                    localStorage.removeItem('customThumbnailFontData');
+                    localStorage.removeItem('customThumbnailFontName');
+                }
+            }
+        }
+
+        // 處理字體上傳
+        inputs.fontFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                const base64Font = event.target.result;
+                try {
+                    // 嘗試儲存到 LocalStorage (注意：大檔案可能會超出 5MB 限制)
+                    localStorage.setItem('customThumbnailFontData', base64Font);
+                    localStorage.setItem('customThumbnailFontName', file.name);
+                    
+                    const font = new FontFace('CustomThumbnailFont', `url(${base64Font})`);
+                    await font.load();
+                    document.fonts.add(font);
+                    
+                    inputs.fontStatus.textContent = `目前使用：${file.name}`;
+                    inputs.fontStatus.className = "mt-2 text-xs text-green-400 font-medium";
+                    inputs.clearFontBtn.classList.remove('hidden');
+                    drawCanvas();
+                    
+                } catch (err) {
+                    if (err.name === 'QuotaExceededError') {
+                        showError('字體檔案過大，無法儲存到 LocalStorage，但本次仍可使用。');
+                        // 依然嘗試套用，但不存檔
+                        const font = new FontFace('CustomThumbnailFont', `url(${base64Font})`);
+                        await font.load().then((loadedFont) => {
+                            document.fonts.add(loadedFont);
+                            inputs.fontStatus.textContent = `目前使用：${file.name} (未儲存)`;
+                            drawCanvas();
+                        }).catch(e => console.error(e));
+                    } else {
+                        showError('字體載入失敗，請確認檔案格式正確。');
+                        console.error(err);
+                    }
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // 清除字體
+        inputs.clearFontBtn.addEventListener('click', () => {
+            localStorage.removeItem('customThumbnailFontData');
+            localStorage.removeItem('customThumbnailFontName');
+            document.fonts.forEach((font) => {
+                if (font.family === 'CustomThumbnailFont') {
+                    document.fonts.delete(font);
+                }
+            });
+            inputs.fontStatus.textContent = '目前使用：系統預設字體';
+            inputs.fontStatus.className = "mt-2 text-xs text-gray-400 font-medium";
+            inputs.clearFontBtn.classList.add('hidden');
+            inputs.fontFile.value = '';
+            drawCanvas();
+        });
+
+        // --- 下載與分享功能 ---
+        inputs.downloadBtn.addEventListener('click', async () => {
+            try {
+                // 使用 toBlob 可以更好地支援分享與檔案下載
+                canvas.toBlob(async (blob) => {
+                    if (!blob) {
+                        showError('產出圖片失敗。');
+                        return;
+                    }
+
+                    // 如果是手機平板且支援原生 Share API (特別是 iOS Safari 必備)
+                    if (isMobile && navigator.canShare) {
+                        const file = new File([blob], `thumbnail_${new Date().getTime()}.jpg`, { type: 'image/jpeg' });
+                        if (navigator.canShare({ files: [file] })) {
+                            try {
+                                await navigator.share({
+                                    files: [file],
+                                    title: '9:16 縮圖'
+                                });
+                                return; // 分享成功就結束
+                            } catch (err) {
+                                console.log('使用者取消分享或發生錯誤', err);
+                                // 使用者取消不報錯，繼續往下走會嘗試預設下載
+                            }
+                        }
+                    }
+                    
+                    // 電腦端預設下載行為，或是分享失敗的備用方案
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.download = `thumbnail_${new Date().getTime()}.jpg`;
+                    link.href = url;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    
+                }, 'image/jpeg', 0.9);
+            } catch (err) {
+                showError('下載失敗！因為您使用了受 CORS 保護的網路圖片。請將該圖片下載到電腦後，使用「上傳本機圖片」功能重新製作。');
+            }
+        });
+
+        // 初始載入與繪製
+        loadSavedFont();
+        // 確保字體載入完成後會再繪製一次
+        document.fonts.ready.then(() => {
+            drawCanvas();
+        });
+
+        // 介面初始化 (判斷是否為手機，改變按鈕文字與圖示)
+        if (isMobile && navigator.canShare) {
+            inputs.downloadBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                </svg>
+                分享 / 儲存圖片 (適合手機)
+            `;
+        }
+    </script>
+</body>
+</html>
