@@ -1,0 +1,1578 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>收盤指數圖卡產生器</title>
+  <meta name="description" content="快速製作 1080×1350 股市收盤指數圖卡工具，支援背景照片上傳與匯出高解析 PNG。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Poppins:wght@400;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    /* =========================================================================
+       字體設定：使用 LINE Seed TW（Eb / Bd / Rg）
+       部署到您的伺服器時，請將以下三個正式字體檔放在與 index.html 同層（或 fonts/ 資料夾）：
+         - LINESeedTW_TTF_Eb.ttf：標題（「加權指數」）與大數字
+         - LINESeedTW_TTF_Bd.ttf：漲跌幅、漲跌點數、右下帳號
+         - LINESeedTW_TTF_Rg.ttf：左下日期與副標題
+       ========================================================================= */
+    @font-face {
+      font-family: "CardFontEb";
+      src: url("./LINESeedTW_TTF_Eb.ttf") format("truetype"),
+           url("./fonts/LINESeedTW_TTF_Eb.ttf") format("truetype");
+      font-weight: 800;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CardFontBd";
+      src: url("./LINESeedTW_TTF_Bd.ttf") format("truetype"),
+           url("./fonts/LINESeedTW_TTF_Bd.ttf") format("truetype");
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "CardFontRg";
+      src: url("./LINESeedTW_TTF_Rg.ttf") format("truetype"),
+           url("./fonts/LINESeedTW_TTF_Rg.ttf") format("truetype");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg: #0d0f14;
+      --panel: #151821;
+      --surface: #1b1f2a;
+      --border: rgba(255, 255, 255, 0.09);
+      --border-strong: rgba(255, 255, 255, 0.18);
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --accent-red: #e3433d;
+      --accent-green: #5f9500;
+      --primary: #f3f4f6;
+      --primary-text: #0d0f14;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
+    body {
+      font-family: "Plus Jakarta Sans", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .sr-file {
+      position: fixed;
+      top: -9999px;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .topbar {
+      height: 58px;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      background: var(--panel);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      color: var(--text);
+    }
+
+    .current-market {
+      font-size: 13px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ham-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 40px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.15s ease;
+    }
+
+    .ham-btn:hover {
+      background: #232836;
+    }
+
+    .ham-icon {
+      width: 18px;
+      height: 18px;
+      display: block;
+    }
+
+    .menu-backdrop {
+      position: fixed;
+      inset: 58px 0 0 0;
+      background: rgba(0, 0, 0, 0.55);
+      z-index: 35;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s ease;
+    }
+
+    .menu-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .market-drawer {
+      position: fixed;
+      top: 58px;
+      right: 0;
+      width: min(320px, 100vw);
+      background: var(--panel);
+      border-left: 1px solid var(--border-strong);
+      border-bottom: 1px solid var(--border-strong);
+      border-bottom-left-radius: 12px;
+      padding: 16px;
+      z-index: 38;
+      transform: translateY(-10px);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.18s ease, opacity 0.18s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.5);
+    }
+
+    .market-drawer.open {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .drawer-group-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .drawer-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .preset-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 11px 14px;
+      min-height: 44px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.15s ease, border-color 0.15s ease;
+      font-family: inherit;
+    }
+
+    .preset-btn:hover {
+      background: #232836;
+    }
+
+    .preset-btn.active {
+      background: #272d3d;
+      border-color: rgba(255, 255, 255, 0.45);
+      font-weight: 700;
+    }
+
+    .preset-sub {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      min-height: 44px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.12s ease, background 0.15s ease;
+    }
+
+    .btn:hover {
+      background: #232836;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: var(--primary-text);
+      border-color: var(--primary);
+    }
+
+    .btn-primary:hover {
+      background: #ffffff;
+    }
+
+    .workspace {
+      width: 100%;
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 24px;
+      display: grid;
+      grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+      gap: 28px;
+      align-items: start;
+    }
+
+    .controls {
+      width: 100%;
+      min-width: 0;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .section {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section:last-child {
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .section-hint {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--muted);
+    }
+
+    .dropzone {
+      display: block;
+      width: 100%;
+      border: 1px dashed var(--border-strong);
+      border-radius: 10px;
+      padding: 18px 14px;
+      text-align: center;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.02);
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .dropzone:hover,
+    .dropzone.dragover {
+      border-color: #ffffff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .dropzone-main {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .dropzone-sub {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .photo-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .photo-meta span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .link-btn {
+      background: none;
+      border: none;
+      color: #d1d5db;
+      font-size: 12px;
+      line-height: 1.2;
+      cursor: pointer;
+      text-decoration: underline;
+      font-family: inherit;
+      flex-shrink: 0;
+      padding: 0;
+    }
+
+    .link-btn:hover {
+      color: #ffffff;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 12px;
+      align-items: end;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .field {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.2;
+      min-height: 20px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .input {
+      width: 100%;
+      min-width: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: var(--text);
+      font-size: 15px;
+      font-family: inherit;
+      font-variant-numeric: tabular-nums;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .input:focus {
+      border-color: rgba(255, 255, 255, 0.45);
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 4px;
+      background: var(--surface);
+      padding: 4px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .seg-btn {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      min-height: 36px;
+      padding: 7px 6px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .seg-btn.active {
+      background: #2a3040;
+      color: #ffffff;
+    }
+
+    .swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .slider-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .slider-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #ffffff;
+      cursor: pointer;
+      min-height: 28px;
+    }
+
+    .color-custom-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .color-picker-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    input[type="color"] {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      background: transparent;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .font-slot {
+      min-width: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+      text-align: left;
+      color: var(--text);
+      font-family: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .font-slot:hover {
+      border-color: var(--border-strong);
+      background: #222735;
+    }
+
+    .font-slot.loaded {
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    .font-slot-title {
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .font-slot-sub {
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .preview-pane {
+      width: 100%;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      position: sticky;
+      top: 82px;
+    }
+
+    .canvas-frame {
+      width: 100%;
+      max-width: 500px;
+      aspect-ratio: 4 / 5;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border-strong);
+      background: #101217;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+      position: relative;
+      cursor: grab;
+      user-select: none;
+      touch-action: pan-y;
+    }
+
+    .canvas-frame.has-photo {
+      touch-action: none;
+    }
+
+    .canvas-frame:active {
+      cursor: grabbing;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .preview-footer {
+      width: 100%;
+      max-width: 500px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .export-bar {
+      width: 100%;
+      max-width: 500px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translate(-50%, 10px);
+      background: #1f2430;
+      border: 1px solid var(--border-strong);
+      color: #ffffff;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      max-width: calc(100vw - 32px);
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 60;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    @media (max-width: 959px) {
+      .topbar {
+        padding: 0 14px;
+      }
+
+      .current-market {
+        display: none;
+      }
+
+      .workspace {
+        display: flex;
+        flex-direction: column;
+        padding: 14px;
+        gap: 16px;
+      }
+
+      .preview-pane {
+        order: -1;
+        position: static;
+      }
+
+      .canvas-frame {
+        max-width: min(100%, 360px);
+      }
+
+      .preview-footer,
+      .export-bar {
+        max-width: 440px;
+      }
+
+      .controls {
+        padding: 16px 14px;
+      }
+
+      .input {
+        font-size: 16px;
+      }
+    }
+
+    @media (max-width: 540px) {
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 370px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-group">
+      <div class="brand">收盤指數圖卡產生器</div>
+      <span class="current-market" id="currentMarketLabel">台股 · 加權指數</span>
+    </div>
+    <button type="button" class="ham-btn" id="hamBtn" aria-expanded="false" aria-controls="marketDrawer">
+      <svg class="ham-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+      <span>市場別</span>
+    </button>
+  </header>
+
+  <div class="menu-backdrop" id="menuBackdrop"></div>
+  <nav class="market-drawer" id="marketDrawer" aria-label="選擇市場別">
+    <div>
+      <div class="drawer-group-title">台灣股市</div>
+      <div class="drawer-list">
+        <button type="button" class="preset-btn active" data-preset="twii">
+          <span>加權指數</span>
+          <span class="preset-sub">台股收盤指數快報</span>
+        </button>
+      </div>
+    </div>
+    <div>
+      <div class="drawer-group-title">美國股市</div>
+      <div class="drawer-list">
+        <button type="button" class="preset-btn" data-preset="sp500">
+          <span>標普500</span>
+          <span class="preset-sub">美股收盤指數快報</span>
+        </button>
+        <button type="button" class="preset-btn" data-preset="nasdaq">
+          <span>那斯達克</span>
+          <span class="preset-sub">美股收盤指數快報</span>
+        </button>
+        <button type="button" class="preset-btn" data-preset="dji">
+          <span>道瓊工業</span>
+          <span class="preset-sub">美股收盤指數快報</span>
+        </button>
+        <button type="button" class="preset-btn" data-preset="sox">
+          <span>費城半導體</span>
+          <span class="preset-sub">美股收盤指數快報</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="workspace">
+    <section class="controls">
+      <div class="section">
+        <div class="section-title">
+          <span>1. 背景照片</span>
+          <span class="section-hint">支援點擊、拖曳或貼上</span>
+        </div>
+        <input type="file" id="photoInput" accept="image/*" class="sr-file" />
+        <label for="photoInput" class="dropzone" id="dropzone" tabindex="0">
+          <div class="dropzone-main" id="dropzoneMain">點擊或拖曳照片至此處上傳</div>
+          <div class="dropzone-sub" id="dropzoneSub">自動裁切為 1080 × 1350 (4:5)</div>
+        </label>
+        <div class="photo-meta" id="photoMeta" style="display: none;">
+          <span id="photoName">已載入照片</span>
+          <button type="button" class="link-btn" id="btnResetPhotoPos">重置位置與縮放</button>
+        </div>
+        <div class="slider-row">
+          <div class="slider-head">
+            <span>照片縮放</span>
+            <span id="zoomVal">100%</span>
+          </div>
+          <input type="range" id="photoZoom" min="100" max="240" value="100" />
+        </div>
+        <div class="slider-row">
+          <div class="slider-head">
+            <span>背景暗度遮罩</span>
+            <span id="scrimVal">74%</span>
+          </div>
+          <input type="range" id="scrimOpacity" min="0" max="92" value="74" />
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">
+          <span>2. 指數與漲跌數值</span>
+          <span class="section-hint">尺寸與排版完全比照範本</span>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="titleInput">標題名稱（Eb）</label>
+            <input class="input" id="titleInput" type="text" value="加權指數" placeholder="例如：標普500" />
+          </div>
+          <div class="field">
+            <label for="mainValueInput">收盤指數（Eb）</label>
+            <input class="input" id="mainValueInput" type="text" value="40194" placeholder="例如：7332" />
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="pctInput">漲跌幅（Bd）</label>
+            <input class="input" id="pctInput" type="text" value="+0.26%" placeholder="例如：-0.11%" />
+          </div>
+          <div class="field">
+            <label for="ptsInput">漲跌點數（Bd）</label>
+            <input class="input" id="ptsInput" type="text" value="+102.8" placeholder="例如：-7.78" />
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">
+          <span>3. 漲跌色系</span>
+          <button type="button" class="link-btn" id="btnConvention">目前：台股紅漲綠跌</button>
+        </div>
+        <div class="segmented" role="group" aria-label="色系模式">
+          <button type="button" class="seg-btn active" data-color-mode="auto">自動判斷</button>
+          <button type="button" class="seg-btn" data-color-mode="red">
+            <span class="swatch" style="background:#e3433d"></span>紅
+          </button>
+          <button type="button" class="seg-btn" data-color-mode="green">
+            <span class="swatch" style="background:#5f9500"></span>綠
+          </button>
+        </div>
+        <div class="color-custom-row">
+          <span>或自訂主題色</span>
+          <div class="color-picker-wrap">
+            <input type="color" id="customColorPicker" value="#e3433d" aria-label="自訂主題色" />
+            <button type="button" class="link-btn" id="btnUseCustomColor">套用自訂色</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">
+          <span>4. 底部資訊與帳號浮水印</span>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="dateInput">
+              <span>日期（Rg）</span>
+              <button type="button" class="link-btn" id="btnToday">帶入今天</button>
+            </label>
+            <input class="input" id="dateInput" type="text" value="20261118" placeholder="YYYYMMDD" />
+          </div>
+          <div class="field">
+            <label for="handleInput">右下帳號（Bd）</label>
+            <input class="input" id="handleInput" type="text" value="@10.newsss" placeholder="@your.account" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="subtitleInput">左下副標題（Rg）</label>
+          <input class="input" id="subtitleInput" type="text" value="台股收盤指數快報" placeholder="例如：美股收盤指數快報" />
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">
+          <span>5. 字體檔案（Eb / Bd / Rg）</span>
+          <span class="section-hint">請選沒有 ._ 的正式字體檔</span>
+        </div>
+        <input type="file" id="fontInputEb" class="sr-file" />
+        <input type="file" id="fontInputBd" class="sr-file" />
+        <input type="file" id="fontInputRg" class="sr-file" />
+        <div class="grid-3">
+          <label for="fontInputEb" class="font-slot" id="slotEb">
+            <span class="font-slot-title">Eb（標題/大數字）</span>
+            <span class="font-slot-sub" id="statusEb">點擊載入字體檔</span>
+          </label>
+          <label for="fontInputBd" class="font-slot" id="slotBd">
+            <span class="font-slot-title">Bd（漲跌/帳號）</span>
+            <span class="font-slot-sub" id="statusBd">點擊載入字體檔</span>
+          </label>
+          <label for="fontInputRg" class="font-slot" id="slotRg">
+            <span class="font-slot-title">Rg（日期/副標）</span>
+            <span class="font-slot-sub" id="statusRg">點擊載入字體檔</span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <section class="preview-pane">
+      <div class="canvas-frame" id="canvasFrame" title="上傳照片後可拖曳調整構圖">
+        <canvas id="cardCanvas" width="1080" height="1350"></canvas>
+      </div>
+      <div class="preview-footer">
+        <span>輸出尺寸：1080 × 1350 px (PNG)</span>
+        <span>上傳照片後可直接在圖上拖曳構圖</span>
+      </div>
+      <div class="export-bar">
+        <button type="button" class="btn" id="btnCopyBottom">複製PNG</button>
+        <button type="button" class="btn btn-primary" id="btnDownloadBottom">下載PNG</button>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    (function () {
+      const CANVAS_W = 1080;
+      const CANVAS_H = 1350;
+      const RED_HEX = '#e3433d';
+      const GREEN_HEX = '#5f9500';
+
+      const PRESETS = {
+        twii: {
+          market: '台股 · 加權指數',
+          title: '加權指數',
+          mainValue: '40194',
+          pct: '+0.26%',
+          pts: '+102.8',
+          subtitle: '台股收盤指數快報',
+          colorMode: 'auto'
+        },
+        sp500: {
+          market: '美股 · 標普500',
+          title: '標普500',
+          mainValue: '7332',
+          pct: '-0.11%',
+          pts: '-7.78',
+          subtitle: '美股收盤指數快報',
+          colorMode: 'auto'
+        },
+        nasdaq: {
+          market: '美股 · 那斯達克',
+          title: '那斯達克',
+          mainValue: '23480',
+          pct: '+0.85%',
+          pts: '+198.4',
+          subtitle: '美股收盤指數快報',
+          colorMode: 'auto'
+        },
+        dji: {
+          market: '美股 · 道瓊工業',
+          title: '道瓊工業',
+          mainValue: '46210',
+          pct: '-0.32%',
+          pts: '-148.5',
+          subtitle: '美股收盤指數快報',
+          colorMode: 'auto'
+        },
+        sox: {
+          market: '美股 · 費城半導體',
+          title: '費城半導體',
+          mainValue: '5842',
+          pct: '+1.42%',
+          pts: '+81.9',
+          subtitle: '美股收盤指數快報',
+          colorMode: 'auto'
+        }
+      };
+
+      const state = {
+        title: '加權指數',
+        mainValue: '40194',
+        pct: '+0.26%',
+        pts: '+102.8',
+        date: '20261118',
+        subtitle: '台股收盤指數快報',
+        handle: localStorage.getItem('card_handle') || '@10.newsss',
+        colorMode: 'auto',
+        customColor: '#e3433d',
+        redOnUp: localStorage.getItem('card_red_on_up') !== 'false',
+        scrim: 74,
+        photo: null,
+        photoName: '',
+        photoZoom: 100,
+        photoOffsetX: 0,
+        photoOffsetY: 0
+      };
+
+      const canvas = document.getElementById('cardCanvas');
+      const ctx = canvas.getContext('2d');
+
+      const el = {
+        hamBtn: document.getElementById('hamBtn'),
+        marketDrawer: document.getElementById('marketDrawer'),
+        menuBackdrop: document.getElementById('menuBackdrop'),
+        currentMarketLabel: document.getElementById('currentMarketLabel'),
+        photoInput: document.getElementById('photoInput'),
+        dropzone: document.getElementById('dropzone'),
+        dropzoneMain: document.getElementById('dropzoneMain'),
+        dropzoneSub: document.getElementById('dropzoneSub'),
+        photoMeta: document.getElementById('photoMeta'),
+        photoName: document.getElementById('photoName'),
+        btnResetPhotoPos: document.getElementById('btnResetPhotoPos'),
+        photoZoom: document.getElementById('photoZoom'),
+        zoomVal: document.getElementById('zoomVal'),
+        scrimOpacity: document.getElementById('scrimOpacity'),
+        scrimVal: document.getElementById('scrimVal'),
+        titleInput: document.getElementById('titleInput'),
+        mainValueInput: document.getElementById('mainValueInput'),
+        pctInput: document.getElementById('pctInput'),
+        ptsInput: document.getElementById('ptsInput'),
+        dateInput: document.getElementById('dateInput'),
+        subtitleInput: document.getElementById('subtitleInput'),
+        handleInput: document.getElementById('handleInput'),
+        btnToday: document.getElementById('btnToday'),
+        btnConvention: document.getElementById('btnConvention'),
+        customColorPicker: document.getElementById('customColorPicker'),
+        btnUseCustomColor: document.getElementById('btnUseCustomColor'),
+        canvasFrame: document.getElementById('canvasFrame'),
+        toast: document.getElementById('toast')
+      };
+
+      el.handleInput.value = state.handle;
+
+      function getTodayYYYYMMDD() {
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return y + m + day;
+      }
+
+      let toastTimer;
+      function showToast(msg) {
+        el.toast.textContent = msg;
+        el.toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.toast.classList.remove('show'), 2800);
+      }
+
+      // Hamburger menu toggle
+      function setMenuOpen(open) {
+        el.marketDrawer.classList.toggle('open', open);
+        el.menuBackdrop.classList.toggle('open', open);
+        el.hamBtn.setAttribute('aria-expanded', String(open));
+      }
+
+      el.hamBtn.addEventListener('click', () => {
+        const isOpen = el.marketDrawer.classList.contains('open');
+        setMenuOpen(!isOpen);
+      });
+
+      el.menuBackdrop.addEventListener('click', () => setMenuOpen(false));
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') setMenuOpen(false);
+      });
+
+      function resolveThemeColor() {
+        if (state.colorMode === 'red') return RED_HEX;
+        if (state.colorMode === 'green') return GREEN_HEX;
+        if (state.colorMode === 'custom') return state.customColor;
+
+        const raw = (state.pct || state.pts || '').trim();
+        const isNegative = raw.startsWith('-') || raw.startsWith('－') || raw.startsWith('▼');
+        if (state.redOnUp) {
+          return isNegative ? GREEN_HEX : RED_HEX;
+        } else {
+          return isNegative ? RED_HEX : GREEN_HEX;
+        }
+      }
+
+      function drawCenteredVisualText(text, centerX, centerY, align) {
+        ctx.textAlign = align;
+        ctx.textBaseline = 'alphabetic';
+        const metrics = ctx.measureText(text);
+        const ascent = metrics.actualBoundingBoxAscent || 0;
+        const descent = metrics.actualBoundingBoxDescent || 0;
+        const baselineY = centerY + (ascent - descent) / 2;
+        ctx.fillText(text, centerX, baselineY);
+      }
+
+      function fitFontSize(text, weight, maxFontSize, maxWidth, fontFamily) {
+        let size = maxFontSize;
+        while (size > 20) {
+          ctx.font = `${weight} ${size}px ${fontFamily}`;
+          if (ctx.measureText(text).width <= maxWidth) break;
+          size -= 2;
+        }
+        return size;
+      }
+
+      function renderCard() {
+        ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+
+        if (state.photo) {
+          const img = state.photo;
+          const baseScale = Math.max(CANVAS_W / img.width, CANVAS_H / img.height);
+          const scale = baseScale * (state.photoZoom / 100);
+          const drawW = img.width * scale;
+          const drawH = img.height * scale;
+          const drawX = (CANVAS_W - drawW) / 2 + state.photoOffsetX;
+          const drawY = (CANVAS_H - drawH) / 2 + state.photoOffsetY;
+
+          ctx.fillStyle = '#0c0d10';
+          ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+          ctx.drawImage(img, drawX, drawY, drawW, drawH);
+        } else {
+          const bgGrad = ctx.createLinearGradient(0, 0, 0, CANVAS_H);
+          bgGrad.addColorStop(0, '#1e222b');
+          bgGrad.addColorStop(1, '#101217');
+          ctx.fillStyle = bgGrad;
+          ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+        }
+
+        const alpha = state.scrim / 100;
+        if (alpha > 0) {
+          const scrimGrad = ctx.createLinearGradient(0, 0, 0, CANVAS_H);
+          scrimGrad.addColorStop(0, `rgba(0, 0, 0, ${Math.max(0, alpha - 0.04).toFixed(3)})`);
+          scrimGrad.addColorStop(0.68, `rgba(0, 0, 0, ${alpha.toFixed(3)})`);
+          scrimGrad.addColorStop(1, `rgba(0, 0, 0, ${Math.min(0.96, alpha + 0.11).toFixed(3)})`);
+          ctx.fillStyle = scrimGrad;
+          ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+        }
+
+        const themeColor = resolveThemeColor();
+        const fontEb = '"CardFontEb", "Poppins", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif';
+        const fontBd = '"CardFontBd", "Poppins", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif';
+        const fontRg = '"CardFontRg", "Poppins", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif';
+
+        // 3. Title -> Eb
+        const titleText = state.title || '';
+        if (titleText) {
+          fitFontSize(titleText, 800, 156, 920, fontEb);
+          ctx.fillStyle = '#ffffff';
+          drawCenteredVisualText(titleText, CANVAS_W / 2, 350, 'center');
+        }
+
+        // 4. Main Box + Number -> Eb
+        ctx.fillStyle = themeColor;
+        ctx.fillRect(100, 480, 880, 280);
+
+        const mainText = state.mainValue || '';
+        if (mainText) {
+          fitFontSize(mainText, 800, 284, 824, fontEb);
+          ctx.fillStyle = '#ffffff';
+          drawCenteredVisualText(mainText, CANVAS_W / 2, 620, 'center');
+        }
+
+        // 5. White Sub-Bar -> Bd
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(100, 760, 880, 110);
+
+        const pctText = state.pct || '';
+        const ptsText = state.pts || '';
+        let subSize = 78;
+        while (subSize > 24) {
+          ctx.font = `700 ${subSize}px ${fontBd}`;
+          const totalW = ctx.measureText(pctText).width + ctx.measureText(ptsText).width;
+          if (totalW <= 800) break;
+          subSize -= 2;
+        }
+        ctx.font = `700 ${subSize}px ${fontBd}`;
+        ctx.fillStyle = themeColor;
+        if (pctText) drawCenteredVisualText(pctText, 120, 815, 'left');
+        if (ptsText) drawCenteredVisualText(ptsText, 960, 815, 'right');
+
+        // 6. Bottom-Left Accent Bar
+        ctx.fillStyle = themeColor;
+        ctx.fillRect(100, 1224, 5, 50);
+
+        // 7. Bottom-Left Date & Subtitle -> Rg
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `400 30px ${fontRg}`;
+        if (state.date) {
+          drawCenteredVisualText(state.date, 132, 1230, 'left');
+        }
+        if (state.subtitle) {
+          drawCenteredVisualText(state.subtitle, 132, 1268, 'left');
+        }
+
+        // 8. Bottom-Right Handle -> Bd
+        const handleText = state.handle || '';
+        if (handleText) {
+          fitFontSize(handleText, 700, 44, 540, fontBd);
+          ctx.fillStyle = '#ffffff';
+          drawCenteredVisualText(handleText, 980, 1250, 'right');
+        }
+      }
+
+      // IndexedDB persistence for user-selected Eb / Bd / Rg font files
+      const DB_NAME = 'MarketCardFontsDB';
+      const STORE_NAME = 'fonts';
+      const WEIGHT_MAP = { Eb: '800', Bd: '700', Rg: '400' };
+
+      function openFontDB() {
+        return new Promise((resolve, reject) => {
+          if (!window.indexedDB) return reject(new Error('No IndexedDB'));
+          const req = indexedDB.open(DB_NAME, 1);
+          req.onupgradeneeded = () => {
+            if (!req.result.objectStoreNames.contains(STORE_NAME)) {
+              req.result.createObjectStore(STORE_NAME);
+            }
+          };
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
+      }
+
+      async function saveFontToDB(slot, name, buffer) {
+        try {
+          const db = await openFontDB();
+          const tx = db.transaction(STORE_NAME, 'readwrite');
+          tx.objectStore(STORE_NAME).put({ name, buffer }, slot);
+        } catch (_) {}
+      }
+
+      async function loadSavedFontsFromDB() {
+        try {
+          const db = await openFontDB();
+          const tx = db.transaction(STORE_NAME, 'readonly');
+          const store = tx.objectStore(STORE_NAME);
+          for (const slot of ['Eb', 'Bd', 'Rg']) {
+            const req = store.get(slot);
+            req.onsuccess = async () => {
+              const rec = req.result;
+              if (rec && rec.buffer) {
+                await applyFontBuffer(slot, rec.name, rec.buffer, false);
+              }
+            };
+          }
+        } catch (_) {}
+      }
+
+      function isAppleDoubleFile(fileName, buffer) {
+        if (fileName.startsWith('._')) return true;
+        if (buffer.byteLength < 1024) return true;
+        const view = new DataView(buffer);
+        // AppleDouble magic number: 0x00051607
+        if (view.byteLength >= 4 && view.getUint32(0, false) === 0x00051607) return true;
+        return false;
+      }
+
+      async function applyFontBuffer(slot, fileName, buffer, shouldSave) {
+        if (isAppleDoubleFile(fileName, buffer)) {
+          showToast('這是不完整的 macOS 系統暫存檔（._ 開頭），請改選沒有 ._ 的正式字體檔');
+          return;
+        }
+        const family = 'CardFont' + slot;
+        const weight = WEIGHT_MAP[slot] || '400';
+        try {
+          const face = new FontFace(family, buffer, { weight, style: 'normal' });
+          const loaded = await face.load();
+          document.fonts.add(loaded);
+          const btn = document.getElementById('slot' + slot);
+          const sub = document.getElementById('status' + slot);
+          if (btn) btn.classList.add('loaded');
+          if (sub) sub.textContent = fileName;
+          if (shouldSave) {
+            await saveFontToDB(slot, fileName, buffer);
+            showToast(`已載入 ${slot} 字體：${fileName}`);
+          }
+          renderCard();
+        } catch (err) {
+          showToast(`字體 ${fileName} 無法解析，請確認為有效 TTF/OTF/WOFF2`);
+        }
+      }
+
+      ['Eb', 'Bd', 'Rg'].forEach((slot) => {
+        const input = document.getElementById('fontInput' + slot);
+        input.addEventListener('change', async (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (!file) return;
+          const buf = await file.arrayBuffer();
+          await applyFontBuffer(slot, file.name, buf, true);
+          e.target.value = '';
+        });
+      });
+
+      let activePhotoUrl = null;
+      function loadPhotoFile(file) {
+        if (!file) return;
+        if (file.type && !file.type.startsWith('image/')) {
+          showToast('請選擇圖片檔案（JPG / PNG / WebP）');
+          return;
+        }
+        if (activePhotoUrl) {
+          URL.revokeObjectURL(activePhotoUrl);
+          activePhotoUrl = null;
+        }
+        const img = new Image();
+        img.onload = function () {
+          state.photo = img;
+          state.photoName = file.name || '已貼上圖片';
+          state.photoZoom = 100;
+          state.photoOffsetX = 0;
+          state.photoOffsetY = 0;
+          el.photoZoom.value = '100';
+          el.zoomVal.textContent = '100%';
+          el.photoMeta.style.display = 'flex';
+          el.photoName.textContent = state.photoName;
+          el.dropzoneMain.textContent = '更換背景照片';
+          el.dropzoneSub.textContent = '目前照片已套用，點擊或拖曳新照片即可替換';
+          el.canvasFrame.classList.add('has-photo');
+          renderCard();
+          showToast('背景照片已套用');
+        };
+        img.onerror = function () {
+          const reader = new FileReader();
+          reader.onload = function (ev) {
+            const fallbackImg = new Image();
+            fallbackImg.onload = function () {
+              state.photo = fallbackImg;
+              state.photoName = file.name || '已貼上圖片';
+              state.photoZoom = 100;
+              state.photoOffsetX = 0;
+              state.photoOffsetY = 0;
+              el.photoZoom.value = '100';
+              el.zoomVal.textContent = '100%';
+              el.photoMeta.style.display = 'flex';
+              el.photoName.textContent = state.photoName;
+              el.dropzoneMain.textContent = '更換背景照片';
+              el.dropzoneSub.textContent = '目前照片已套用，點擊或拖曳新照片即可替換';
+              el.canvasFrame.classList.add('has-photo');
+              renderCard();
+              showToast('背景照片已套用');
+            };
+            fallbackImg.onerror = function () {
+              showToast('無法讀取此圖片格式，請改用 JPG 或 PNG');
+            };
+            fallbackImg.src = ev.target.result;
+          };
+          reader.readAsDataURL(file);
+        };
+        activePhotoUrl = URL.createObjectURL(file);
+        img.src = activePhotoUrl;
+      }
+
+      el.dropzone.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          el.photoInput.click();
+        }
+      });
+      el.photoInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          loadPhotoFile(e.target.files[0]);
+          e.target.value = '';
+        }
+      });
+
+      ['dragenter', 'dragover'].forEach((evt) => {
+        el.dropzone.addEventListener(evt, (e) => {
+          e.preventDefault();
+          el.dropzone.classList.add('dragover');
+        });
+      });
+      ['dragleave', 'drop'].forEach((evt) => {
+        el.dropzone.addEventListener(evt, (e) => {
+          e.preventDefault();
+          el.dropzone.classList.remove('dragover');
+        });
+      });
+      el.dropzone.addEventListener('drop', (e) => {
+        const file = e.dataTransfer.files && e.dataTransfer.files[0];
+        if (file) loadPhotoFile(file);
+      });
+
+      window.addEventListener('paste', (e) => {
+        const items = e.clipboardData && e.clipboardData.items;
+        if (!items) return;
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].type.startsWith('image/')) {
+            loadPhotoFile(items[i].getAsFile());
+            break;
+          }
+        }
+      });
+
+      let isDragging = false;
+      let startX = 0;
+      let startY = 0;
+      let origX = 0;
+      let origY = 0;
+
+      el.canvasFrame.addEventListener('pointerdown', (e) => {
+        if (!state.photo) return;
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        origX = state.photoOffsetX;
+        origY = state.photoOffsetY;
+        el.canvasFrame.setPointerCapture(e.pointerId);
+      });
+
+      el.canvasFrame.addEventListener('pointermove', (e) => {
+        if (!isDragging) return;
+        const rect = el.canvasFrame.getBoundingClientRect();
+        const scaleFactor = CANVAS_W / rect.width;
+        state.photoOffsetX = origX + (e.clientX - startX) * scaleFactor;
+        state.photoOffsetY = origY + (e.clientY - startY) * scaleFactor;
+        renderCard();
+      });
+
+      const stopDrag = () => { isDragging = false; };
+      el.canvasFrame.addEventListener('pointerup', stopDrag);
+      el.canvasFrame.addEventListener('pointercancel', stopDrag);
+
+      el.btnResetPhotoPos.addEventListener('click', () => {
+        state.photoZoom = 100;
+        state.photoOffsetX = 0;
+        state.photoOffsetY = 0;
+        el.photoZoom.value = '100';
+        el.zoomVal.textContent = '100%';
+        renderCard();
+      });
+
+      el.photoZoom.addEventListener('input', (e) => {
+        state.photoZoom = Number(e.target.value);
+        el.zoomVal.textContent = state.photoZoom + '%';
+        renderCard();
+      });
+
+      el.scrimOpacity.addEventListener('input', (e) => {
+        state.scrim = Number(e.target.value);
+        el.scrimVal.textContent = state.scrim + '%';
+        renderCard();
+      });
+
+      function syncTextInput(inputEl, key, persistKey) {
+        inputEl.addEventListener('input', (e) => {
+          state[key] = e.target.value;
+          if (persistKey) localStorage.setItem(persistKey, state[key]);
+          renderCard();
+        });
+      }
+      syncTextInput(el.titleInput, 'title');
+      syncTextInput(el.mainValueInput, 'mainValue');
+      syncTextInput(el.pctInput, 'pct');
+      syncTextInput(el.ptsInput, 'pts');
+      syncTextInput(el.dateInput, 'date');
+      syncTextInput(el.subtitleInput, 'subtitle');
+      syncTextInput(el.handleInput, 'handle', 'card_handle');
+
+      el.btnToday.addEventListener('click', () => {
+        const today = getTodayYYYYMMDD();
+        state.date = today;
+        el.dateInput.value = today;
+        renderCard();
+      });
+
+      function updateColorModeUI() {
+        document.querySelectorAll('.seg-btn').forEach((btn) => {
+          btn.classList.toggle('active', btn.dataset.colorMode === state.colorMode);
+        });
+        el.btnConvention.textContent = state.redOnUp ? '目前：台股紅漲綠跌' : '目前：美股綠漲紅跌';
+      }
+
+      document.querySelectorAll('.seg-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          state.colorMode = btn.dataset.colorMode;
+          updateColorModeUI();
+          renderCard();
+        });
+      });
+
+      el.btnConvention.addEventListener('click', () => {
+        state.redOnUp = !state.redOnUp;
+        localStorage.setItem('card_red_on_up', String(state.redOnUp));
+        updateColorModeUI();
+        renderCard();
+      });
+
+      el.btnUseCustomColor.addEventListener('click', () => {
+        state.customColor = el.customColorPicker.value;
+        state.colorMode = 'custom';
+        updateColorModeUI();
+        renderCard();
+      });
+
+      el.customColorPicker.addEventListener('input', (e) => {
+        state.customColor = e.target.value;
+        state.colorMode = 'custom';
+        updateColorModeUI();
+        renderCard();
+      });
+
+      document.querySelectorAll('.preset-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const p = PRESETS[btn.dataset.preset];
+          if (!p) return;
+          document.querySelectorAll('.preset-btn').forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          el.currentMarketLabel.textContent = p.market;
+          state.title = p.title;
+          state.mainValue = p.mainValue;
+          state.pct = p.pct;
+          state.pts = p.pts;
+          state.subtitle = p.subtitle;
+          state.colorMode = p.colorMode;
+
+          el.titleInput.value = p.title;
+          el.mainValueInput.value = p.mainValue;
+          el.pctInput.value = p.pct;
+          el.ptsInput.value = p.pts;
+          el.subtitleInput.value = p.subtitle;
+          updateColorModeUI();
+          renderCard();
+          setMenuOpen(false);
+        });
+      });
+
+      function downloadPNG() {
+        renderCard();
+        const safeTitle = (state.title || 'index-card').replace(/[\\/:*?"<>|]/g, '');
+        const safeDate = (state.date || getTodayYYYYMMDD()).replace(/[\\/:*?"<>|]/g, '');
+        const filename = `${safeDate}_${safeTitle}_${state.mainValue || 'card'}.png`;
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = canvas.toDataURL('image/png', 1.0);
+        link.click();
+        showToast('已下載 ' + filename);
+      }
+
+      async function copyPNG() {
+        renderCard();
+        if (!navigator.clipboard || !window.ClipboardItem) {
+          showToast('此瀏覽器不支援剪貼簿複製，請改用下載PNG');
+          return;
+        }
+        canvas.toBlob(async (blob) => {
+          if (!blob) return;
+          try {
+            await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+            showToast('已複製 1080×1350 圖卡到剪貼簿');
+          } catch (err) {
+            showToast('複製失敗，請改用下載PNG');
+          }
+        }, 'image/png');
+      }
+
+      document.getElementById('btnDownloadBottom').addEventListener('click', downloadPNG);
+      document.getElementById('btnCopyBottom').addEventListener('click', copyPNG);
+
+      async function preloadServerFonts() {
+        if (!document.fonts || !document.fonts.load) return;
+        const slots = [
+          { slot: 'Eb', desc: '800 48px "CardFontEb"' },
+          { slot: 'Bd', desc: '700 48px "CardFontBd"' },
+          { slot: 'Rg', desc: '400 30px "CardFontRg"' }
+        ];
+        await Promise.all(
+          slots.map(async ({ slot, desc }) => {
+            try {
+              const loaded = await document.fonts.load(desc, '加權指數0123456789');
+              if (loaded && loaded.length > 0) {
+                const btn = document.getElementById('slot' + slot);
+                const sub = document.getElementById('status' + slot);
+                if (btn && !btn.classList.contains('loaded')) {
+                  btn.classList.add('loaded');
+                  if (sub) sub.textContent = `LINE Seed TW (${slot})`;
+                }
+              }
+            } catch (_) {}
+          })
+        );
+        renderCard();
+      }
+
+      updateColorModeUI();
+      renderCard();
+      loadSavedFontsFromDB();
+      preloadServerFonts();
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(renderCard);
+      }
+    })();
+  </script>
+</body>
+</html>
