@@ -1508,11 +1508,38 @@
         });
       });
 
-      function downloadPNG() {
-        renderCard();
+      function isMobileOrTablet() {
+        const ua = navigator.userAgent || '';
+        const isTouchMac = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+        const isUADataMobile = !!(navigator.userAgentData && navigator.userAgentData.mobile);
+        return isUADataMobile || isTouchMac || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+      }
+
+      const IS_MOBILE_OR_TABLET = isMobileOrTablet();
+      const btnDownloadBottom = document.getElementById('btnDownloadBottom');
+      if (IS_MOBILE_OR_TABLET) {
+        btnDownloadBottom.textContent = '分享PNG';
+      }
+
+      function getExportFilename() {
         const safeTitle = (state.title || 'index-card').replace(/[\\/:*?"<>|]/g, '');
         const safeDate = (state.date || getTodayYYYYMMDD()).replace(/[\\/:*?"<>|]/g, '');
-        const filename = `${safeDate}_${safeTitle}_${state.mainValue || 'card'}.png`;
+        return `${safeDate}_${safeTitle}_${state.mainValue || 'card'}.png`;
+      }
+
+      function canvasToPngFile(filename) {
+        const dataUrl = canvas.toDataURL('image/png', 1.0);
+        const parts = dataUrl.split(',');
+        const byteString = atob(parts[1]);
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+        for (let i = 0; i < byteString.length; i++) {
+          ia[i] = byteString.charCodeAt(i);
+        }
+        return new File([ab], filename, { type: 'image/png' });
+      }
+
+      function triggerDirectDownload(filename) {
         const link = document.createElement('a');
         link.download = filename;
         link.href = canvas.toDataURL('image/png', 1.0);
@@ -1520,10 +1547,34 @@
         showToast('已下載 ' + filename);
       }
 
+      async function exportOrSharePNG() {
+        renderCard();
+        const filename = getExportFilename();
+
+        if (IS_MOBILE_OR_TABLET && navigator.share) {
+          const file = canvasToPngFile(filename);
+          const canShareFiles = !navigator.canShare || navigator.canShare({ files: [file] });
+          if (canShareFiles) {
+            try {
+              await navigator.share({
+                files: [file],
+                title: filename
+              });
+              return;
+            } catch (err) {
+              if (err && err.name === 'AbortError') return;
+              // Fallback to direct download if share is unsupported in this browser/context
+            }
+          }
+        }
+
+        triggerDirectDownload(filename);
+      }
+
       async function copyPNG() {
         renderCard();
         if (!navigator.clipboard || !window.ClipboardItem) {
-          showToast('此瀏覽器不支援剪貼簿複製，請改用下載PNG');
+          showToast(IS_MOBILE_OR_TABLET ? '請點「分享PNG」儲存或複製圖片' : '此瀏覽器不支援剪貼簿複製，請改用下載PNG');
           return;
         }
         canvas.toBlob(async (blob) => {
@@ -1532,12 +1583,12 @@
             await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
             showToast('已複製 1080×1350 圖卡到剪貼簿');
           } catch (err) {
-            showToast('複製失敗，請改用下載PNG');
+            showToast(IS_MOBILE_OR_TABLET ? '請改點「分享PNG」儲存圖片' : '複製失敗，請改用下載PNG');
           }
         }, 'image/png');
       }
 
-      document.getElementById('btnDownloadBottom').addEventListener('click', downloadPNG);
+      btnDownloadBottom.addEventListener('click', exportOrSharePNG);
       document.getElementById('btnCopyBottom').addEventListener('click', copyPNG);
 
       async function preloadServerFonts() {
