@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>專屬新聞圖庫</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen p-6">
+
+  <div class="max-w-6xl mx-auto">
+    <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8">
+      <h1 class="text-2xl font-bold tracking-tight">📸 專屬新聞圖庫</h1>
+      <input 
+        id="searchInput" 
+        type="text" 
+        placeholder="搜尋檔名關鍵字（例如：大跌、美股）..." 
+        class="w-full sm:w-80 px-4 py-2 rounded-lg bg-zinc-900 border border-zinc-700 focus:outline-none focus:border-emerald-500 text-sm"
+      >
+    </div>
+
+    <div id="status" class="text-zinc-400 text-center py-12">載入圖片中...</div>
+    <div id="gallery" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+  </div>
+
+  <script>
+    // 👇 只要改這三個設定就好
+    const USERNAME = 'rockchang1221'; // 你的 GitHub 帳號
+    const REPO_NAME = 'news-assets';  // 你的圖庫專案名稱
+    const FOLDER = 'images';          // 放圖片的資料夾名稱
+
+    let allImages = [];
+
+    async function loadImages() {
+      const statusEl = document.getElementById('status');
+      try {
+        const res = await fetch(`https://api.github.com/repos/${USERNAME}/${REPO_NAME}/contents/${FOLDER}`);
+        if (!res.ok) throw new Error('讀取失敗，請確認專案為 Public 且資料夾名稱正確');
+        const files = await res.json();
+
+        // 只篩選圖片檔
+        allImages = files.filter(f => /\.(jpg|jpeg|png|webp|gif)$/i.test(f.name));
+        
+        if (allImages.length === 0) {
+          statusEl.textContent = '資料夾裡還沒有圖片，快上傳幾張吧！';
+          return;
+        }
+
+        statusEl.style.display = 'none';
+        renderGallery(allImages);
+      } catch (err) {
+        statusEl.textContent = '❌ ' + err.message;
+      }
+    }
+
+    function renderGallery(images) {
+      const gallery = document.getElementById('gallery');
+      gallery.innerHTML = '';
+
+      images.forEach(file => {
+        // 組合出 GitHub Pages 的正式圖片網址（處理中文與空白編碼）
+        const pageUrl = `https://${USERNAME}.github.io/${REPO_NAME}/${FOLDER}/${encodeURIComponent(file.name)}`;
+
+        const card = document.createElement('div');
+        card.className = 'bg-zinc-900 rounded-xl overflow-hidden border border-zinc-800 flex flex-col';
+
+        card.innerHTML = `
+          <div class="aspect-video bg-zinc-800 overflow-hidden">
+            <img src="${pageUrl}" alt="${file.name}" loading="lazy" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
+          </div>
+          <div class="p-3 flex flex-col gap-2 flex-1 justify-between">
+            <p class="text-xs text-zinc-400 truncate" title="${file.name}">${file.name}</p>
+            <button 
+              onclick="copyLink(this, '${pageUrl}')" 
+              class="w-full py-1.5 px-3 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-medium rounded-lg transition-all"
+            >
+              複製連結
+            </button>
+          </div>
+        `;
+        gallery.appendChild(card);
+      });
+    }
+
+    function copyLink(btn, url) {
+      navigator.clipboard.writeText(url).then(() => {
+        const originalText = btn.textContent;
+        btn.textContent = '✅ 已複製！';
+        btn.classList.replace('bg-emerald-600', 'bg-zinc-700');
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.classList.replace('bg-zinc-700', 'bg-emerald-600');
+        }, 1200);
+      });
+    }
+
+    // 即時關鍵字搜尋
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      const keyword = e.target.value.toLowerCase();
+      const filtered = allImages.filter(f => f.name.toLowerCase().includes(keyword));
+      renderGallery(filtered);
+    });
+
+    loadImages();
+  </script>
+</body>
+</html>
