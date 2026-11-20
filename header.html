@@ -1,0 +1,102 @@
+<!-- =========================================================================
+     共用頂部導覽列（header.html）
+     未來要新增或修改導覽連結，只需編輯這個檔案即可同步套用到所有頁面！
+     在下方 <nav class="nav-menu"> 內新增 <a href="./頁面檔名.html" class="nav-link">名稱</a>。
+========================================================================= -->
+<style>
+  #site-header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    min-height: 58px;
+  }
+
+  .topbar {
+    height: 58px;
+    padding: 0 24px;
+    border-bottom: 1px solid #e4e4e7;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    background: #ffffff;
+  }
+
+  .brand-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .brand {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    color: #18181b;
+  }
+
+  .nav-menu {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 14px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #18181b;
+    background: transparent;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 0.18s ease, color 0.18s ease;
+  }
+
+  .nav-link:hover,
+  .nav-link:focus-visible {
+    background-color: rgba(0, 0, 0, 0.055);
+    outline: none;
+  }
+
+  .nav-link:active {
+    background-color: rgba(0, 0, 0, 0.09);
+  }
+
+  .nav-link.active {
+    font-weight: 700;
+  }
+
+  @media (max-width: 959px) {
+    .topbar {
+      padding: 0 14px;
+    }
+  }
+
+  @media (max-width: 540px) {
+    .brand {
+      font-size: 14px;
+    }
+
+    .nav-link {
+      padding: 6px 10px;
+      font-size: 13px;
+    }
+  }
+</style>
+
+<header class="topbar">
+  <div class="brand-group">
+    <div class="brand" id="siteHeaderBrand">工具箱</div>
+  </div>
+  <nav class="nav-menu" aria-label="頁面切換">
+    <a href="./indexes.html" class="nav-link">圖卡產生器</a>
+    <a href="./image.html" class="nav-link">新聞圖庫</a>
+  </nav>
+</header>
