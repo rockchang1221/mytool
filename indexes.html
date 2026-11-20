@@ -87,69 +87,11 @@
       pointer-events: none;
     }
 
-    .topbar {
-      height: 58px;
-      padding: 0 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      background: var(--panel);
+    #site-header {
       position: sticky;
       top: 0;
       z-index: 40;
-    }
-
-    .brand-group {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      min-width: 0;
-    }
-
-    .brand {
-      font-size: 16px;
-      font-weight: 700;
-      letter-spacing: -0.01em;
-      white-space: nowrap;
-      color: var(--text);
-    }
-
-    .nav-menu {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 4px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      flex-shrink: 0;
-    }
-
-    .nav-link {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 6px 14px;
-      border-radius: 7px;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--muted);
-      text-decoration: none;
-      white-space: nowrap;
-      transition: background 0.15s, color 0.15s, box-shadow 0.15s;
-    }
-
-    .nav-link:hover {
-      color: var(--text);
-    }
-
-    .nav-link.active {
-      background: #ffffff;
-      color: var(--text);
-      font-weight: 600;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+      min-height: 58px;
     }
 
     .current-market {
@@ -674,10 +616,6 @@
     }
 
     @media (max-width: 959px) {
-      .topbar {
-        padding: 0 14px;
-      }
-
       .current-market {
         display: none;
       }
@@ -720,15 +658,6 @@
       .grid-3 {
         grid-template-columns: 1fr;
       }
-
-      .brand {
-        font-size: 14px;
-      }
-
-      .nav-link {
-        padding: 5px 10px;
-        font-size: 12px;
-      }
     }
 
     @media (max-width: 370px) {
@@ -739,15 +668,30 @@
   </style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand-group">
-      <div class="brand">收盤指數圖卡產生器</div>
-    </div>
-    <nav class="nav-menu" aria-label="頁面切換">
-      <a href="./indexes.html" class="nav-link active" aria-current="page">圖卡產生器</a>
-      <a href="./image.html" class="nav-link">新聞圖庫</a>
-    </nav>
-  </header>
+  <div id="site-header" data-brand="收盤指數圖卡產生器"></div>
+  <script>
+    (function () {
+      const mount = document.getElementById('site-header');
+      if (!mount) return;
+      fetch('./header.html')
+        .then((res) => (res.ok ? res.text() : ''))
+        .then((html) => {
+          if (!html) return;
+          mount.innerHTML = html;
+          const brandEl = mount.querySelector('#siteHeaderBrand');
+          if (mount.dataset.brand && brandEl) brandEl.textContent = mount.dataset.brand;
+          const currentFile = (window.location.pathname.split('/').pop() || 'indexes.html').toLowerCase();
+          mount.querySelectorAll('.nav-link').forEach((link) => {
+            const hrefFile = (link.getAttribute('href') || '').split('/').pop().toLowerCase();
+            if (hrefFile === currentFile) {
+              link.classList.add('active');
+              link.setAttribute('aria-current', 'page');
+            }
+          });
+        })
+        .catch(() => {});
+    })();
+  </script>
 
   <main class="workspace">
     <section class="controls">
