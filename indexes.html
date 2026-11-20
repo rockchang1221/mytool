@@ -42,17 +42,17 @@
     }
 
     :root {
-      --bg: #0d0f14;
-      --panel: #151821;
-      --surface: #1b1f2a;
-      --border: rgba(255, 255, 255, 0.09);
-      --border-strong: rgba(255, 255, 255, 0.18);
-      --text: #f3f4f6;
-      --muted: #9ca3af;
+      --bg: #fafafa;
+      --panel: #ffffff;
+      --surface: #f4f4f5;
+      --border: #e4e4e7;
+      --border-strong: #d4d4d8;
+      --text: #18181b;
+      --muted: #71717a;
       --accent-red: #e3433d;
       --accent-green: #5f9500;
-      --primary: #f3f4f6;
-      --primary-text: #0d0f14;
+      --primary: #18181b;
+      --primary-text: #ffffff;
     }
 
     * {
@@ -116,6 +116,42 @@
       color: var(--text);
     }
 
+    .nav-menu {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
+
+    .nav-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 14px;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      white-space: nowrap;
+      transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+    }
+
+    .nav-link:hover {
+      color: var(--text);
+    }
+
+    .nav-link.active {
+      background: #ffffff;
+      color: var(--text);
+      font-weight: 600;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    }
+
     .current-market {
       font-size: 13px;
       color: var(--muted);
@@ -124,123 +160,67 @@
       text-overflow: ellipsis;
     }
 
-    .ham-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      min-height: 40px;
-      padding: 8px 14px;
-      border-radius: 8px;
-      border: 1px solid var(--border-strong);
-      background: var(--surface);
-      color: var(--text);
-      font-family: inherit;
-      font-size: 13px;
-      font-weight: 600;
+    .mode-hidden {
+      display: none !important;
+    }
+
+    .select {
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
       cursor: pointer;
-      flex-shrink: 0;
-      transition: background 0.15s ease;
     }
 
-    .ham-btn:hover {
-      background: #232836;
+    .select option {
+      background: #ffffff;
+      color: #18181b;
     }
 
-    .ham-icon {
-      width: 18px;
-      height: 18px;
-      display: block;
-    }
-
-    .menu-backdrop {
-      position: fixed;
-      inset: 58px 0 0 0;
-      background: rgba(0, 0, 0, 0.55);
-      z-index: 35;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.18s ease;
-    }
-
-    .menu-backdrop.open {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .market-drawer {
-      position: fixed;
-      top: 58px;
-      right: 0;
-      width: min(320px, 100vw);
-      background: var(--panel);
-      border-left: 1px solid var(--border-strong);
-      border-bottom: 1px solid var(--border-strong);
-      border-bottom-left-radius: 12px;
-      padding: 16px;
-      z-index: 38;
-      transform: translateY(-10px);
-      opacity: 0;
-      pointer-events: none;
-      transition: transform 0.18s ease, opacity 0.18s ease;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.5);
-    }
-
-    .market-drawer.open {
-      transform: translateY(0);
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .drawer-group-title {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
-
-    .drawer-list {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .preset-btn {
-      width: 100%;
+    .input-affix-wrap {
+      position: relative;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text);
+    }
+
+    .input-affix-wrap .input {
+      padding-right: 32px;
+    }
+
+    .input-suffix {
+      position: absolute;
+      right: 12px;
       font-size: 14px;
-      font-weight: 500;
-      padding: 11px 14px;
-      min-height: 44px;
-      border-radius: 8px;
-      cursor: pointer;
-      text-align: left;
-      transition: background 0.15s ease, border-color 0.15s ease;
-      font-family: inherit;
+      font-weight: 600;
+      color: var(--muted);
+      pointer-events: none;
     }
 
-    .preset-btn:hover {
-      background: #232836;
+    .sync-row {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
     }
 
-    .preset-btn.active {
-      background: #272d3d;
-      border-color: rgba(255, 255, 255, 0.45);
-      font-weight: 700;
+    .sync-row .input {
+      flex: 1;
+      min-width: 0;
+      font-size: 13px;
+      padding: 8px 10px;
     }
 
-    .preset-sub {
+    .btn-sm {
+      min-height: 38px;
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+
+    .sync-status {
       font-size: 12px;
       color: var(--muted);
-      font-weight: 400;
+      line-height: 1.4;
     }
 
     .btn {
@@ -255,15 +235,17 @@
       padding: 10px 16px;
       border-radius: 8px;
       border: 1px solid var(--border-strong);
-      background: var(--surface);
+      background: var(--panel);
       color: var(--text);
       cursor: pointer;
       white-space: nowrap;
-      transition: transform 0.12s ease, background 0.15s ease;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
     }
 
     .btn:hover {
-      background: #232836;
+      background: var(--surface);
+      border-color: #a1a1aa;
     }
 
     .btn:active {
@@ -277,7 +259,8 @@
     }
 
     .btn-primary:hover {
-      background: #ffffff;
+      background: #3f3f46;
+      border-color: #3f3f46;
     }
 
     .workspace {
@@ -301,6 +284,7 @@
       display: flex;
       flex-direction: column;
       gap: 18px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     }
 
     .section {
@@ -342,14 +326,14 @@
       padding: 18px 14px;
       text-align: center;
       cursor: pointer;
-      background: rgba(255, 255, 255, 0.02);
+      background: var(--bg);
       transition: border-color 0.15s ease, background 0.15s ease;
     }
 
     .dropzone:hover,
     .dropzone.dragover {
-      border-color: #ffffff;
-      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--text);
+      background: var(--surface);
     }
 
     .dropzone-main {
@@ -383,7 +367,7 @@
     .link-btn {
       background: none;
       border: none;
-      color: #d1d5db;
+      color: #52525b;
       font-size: 12px;
       line-height: 1.2;
       cursor: pointer;
@@ -394,7 +378,7 @@
     }
 
     .link-btn:hover {
-      color: #ffffff;
+      color: var(--text);
     }
 
     .grid-2 {
@@ -432,8 +416,8 @@
     .input {
       width: 100%;
       min-width: 0;
-      background: var(--surface);
-      border: 1px solid var(--border);
+      background: var(--panel);
+      border: 1px solid var(--border-strong);
       border-radius: 8px;
       padding: 10px 12px;
       color: var(--text);
@@ -441,11 +425,22 @@
       font-family: inherit;
       font-variant-numeric: tabular-nums;
       outline: none;
-      transition: border-color 0.15s ease;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .input::placeholder {
+      color: #a1a1aa;
     }
 
     .input:focus {
-      border-color: rgba(255, 255, 255, 0.45);
+      border-color: var(--text);
+      box-shadow: 0 0 0 3px rgba(24, 24, 27, 0.08);
+    }
+
+    .textarea {
+      resize: vertical;
+      min-height: 92px;
+      line-height: 1.45;
     }
 
     .segmented {
@@ -456,6 +451,10 @@
       padding: 4px;
       border-radius: 8px;
       border: 1px solid var(--border);
+    }
+
+    .segmented-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .seg-btn {
@@ -473,12 +472,17 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      transition: background 0.15s ease, color 0.15s ease;
+      transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .seg-btn:hover {
+      color: var(--text);
     }
 
     .seg-btn.active {
-      background: #2a3040;
-      color: #ffffff;
+      background: #ffffff;
+      color: var(--text);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
     }
 
     .swatch {
@@ -505,7 +509,7 @@
 
     input[type="range"] {
       width: 100%;
-      accent-color: #ffffff;
+      accent-color: #18181b;
       cursor: pointer;
       min-height: 28px;
     }
@@ -530,14 +534,14 @@
       height: 32px;
       border: 1px solid var(--border-strong);
       border-radius: 6px;
-      background: transparent;
+      background: #ffffff;
       cursor: pointer;
-      padding: 0;
+      padding: 2px;
     }
 
     .font-slot {
       min-width: 0;
-      background: var(--surface);
+      background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 10px;
@@ -553,11 +557,12 @@
 
     .font-slot:hover {
       border-color: var(--border-strong);
-      background: #222735;
+      background: var(--surface);
     }
 
     .font-slot.loaded {
-      border-color: rgba(255, 255, 255, 0.4);
+      border-color: #a1a1aa;
+      background: #ffffff;
     }
 
     .font-slot-title {
@@ -593,13 +598,18 @@
       aspect-ratio: 4 / 5;
       border-radius: 10px;
       overflow: hidden;
-      border: 1px solid var(--border-strong);
+      border: 1px solid var(--border);
       background: #101217;
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+      box-shadow: 0 20px 50px rgba(24, 24, 27, 0.16);
       position: relative;
       cursor: grab;
       user-select: none;
       touch-action: pan-y;
+    }
+
+    .canvas-frame.mode-thumb {
+      aspect-ratio: 9 / 16;
+      max-width: 380px;
     }
 
     .canvas-frame.has-photo {
@@ -642,8 +652,8 @@
       bottom: 20px;
       left: 50%;
       transform: translate(-50%, 10px);
-      background: #1f2430;
-      border: 1px solid var(--border-strong);
+      background: #18181b;
+      border: 1px solid rgba(255, 255, 255, 0.1);
       color: #ffffff;
       padding: 10px 16px;
       border-radius: 8px;
@@ -653,6 +663,7 @@
       text-align: center;
       opacity: 0;
       pointer-events: none;
+      box-shadow: 0 12px 30px rgba(24, 24, 27, 0.25);
       transition: opacity 0.2s ease, transform 0.2s ease;
       z-index: 60;
     }
@@ -687,6 +698,10 @@
         max-width: min(100%, 360px);
       }
 
+      .canvas-frame.mode-thumb {
+        max-width: min(100%, 285px);
+      }
+
       .preview-footer,
       .export-bar {
         max-width: 440px;
@@ -705,6 +720,15 @@
       .grid-3 {
         grid-template-columns: 1fr;
       }
+
+      .brand {
+        font-size: 14px;
+      }
+
+      .nav-link {
+        padding: 5px 10px;
+        font-size: 12px;
+      }
     }
 
     @media (max-width: 370px) {
@@ -718,54 +742,44 @@
   <header class="topbar">
     <div class="brand-group">
       <div class="brand">收盤指數圖卡產生器</div>
-      <span class="current-market" id="currentMarketLabel">台股 · 加權指數</span>
     </div>
-    <button type="button" class="ham-btn" id="hamBtn" aria-expanded="false" aria-controls="marketDrawer">
-      <svg class="ham-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <line x1="3" y1="6" x2="21" y2="6"></line>
-        <line x1="3" y1="12" x2="21" y2="12"></line>
-        <line x1="3" y1="18" x2="21" y2="18"></line>
-      </svg>
-      <span>市場別</span>
-    </button>
+    <nav class="nav-menu" aria-label="頁面切換">
+      <a href="./indexes.html" class="nav-link active" aria-current="page">圖卡產生器</a>
+      <a href="./image.html" class="nav-link">新聞圖庫</a>
+    </nav>
   </header>
-
-  <div class="menu-backdrop" id="menuBackdrop"></div>
-  <nav class="market-drawer" id="marketDrawer" aria-label="選擇市場別">
-    <div>
-      <div class="drawer-group-title">台灣股市</div>
-      <div class="drawer-list">
-        <button type="button" class="preset-btn active" data-preset="twii">
-          <span>加權指數</span>
-          <span class="preset-sub">台股收盤指數快報</span>
-        </button>
-      </div>
-    </div>
-    <div>
-      <div class="drawer-group-title">美國股市</div>
-      <div class="drawer-list">
-        <button type="button" class="preset-btn" data-preset="sp500">
-          <span>標普500</span>
-          <span class="preset-sub">美股收盤指數快報</span>
-        </button>
-        <button type="button" class="preset-btn" data-preset="nasdaq">
-          <span>那斯達克</span>
-          <span class="preset-sub">美股收盤指數快報</span>
-        </button>
-        <button type="button" class="preset-btn" data-preset="dji">
-          <span>道瓊工業</span>
-          <span class="preset-sub">美股收盤指數快報</span>
-        </button>
-        <button type="button" class="preset-btn" data-preset="sox">
-          <span>費城半導體</span>
-          <span class="preset-sub">美股收盤指數快報</span>
-        </button>
-      </div>
-    </div>
-  </nav>
 
   <main class="workspace">
     <section class="controls">
+      <div class="section">
+        <div class="section-title">
+          <span>工具模式</span>
+          <span class="section-hint" id="modeRatioHint">4:5 收盤圖卡</span>
+        </div>
+        <div class="segmented segmented-2" role="tablist" aria-label="切換製作工具">
+          <button type="button" class="seg-btn active" id="modeTabCard" data-mode="card" role="tab" aria-selected="true">指數圖卡（4:5）</button>
+          <button type="button" class="seg-btn" id="modeTabThumb" data-mode="thumb" role="tab" aria-selected="false">縮圖製作（9:16）</button>
+        </div>
+      </div>
+
+      <!-- Market Selector & Google Sheet CSV Sync (Index Card Mode) -->
+      <div class="section" data-mode-panel="card">
+        <div class="section-title">
+          <span>市場別與 Google Sheet 資料</span>
+          <span class="section-hint" id="sheetSyncBadge">手動模式</span>
+        </div>
+        <div class="field">
+          <label for="marketSelect">選擇市場別</label>
+          <select class="input select" id="marketSelect" aria-label="選擇市場別">
+            <option value="台灣加權">台灣加權</option>
+            <option value="標普500">標普500</option>
+            <option value="那斯達克">那斯達克</option>
+            <option value="道瓊指數">道瓊指數</option>
+            <option value="費城半導體">費城半導體</option>
+          </select>
+        </div>
+      </div>
+
       <div class="section">
         <div class="section-title">
           <span>1. 背景照片</span>
@@ -774,7 +788,6 @@
         <input type="file" id="photoInput" accept="image/*" class="sr-file" />
         <label for="photoInput" class="dropzone" id="dropzone" tabindex="0">
           <div class="dropzone-main" id="dropzoneMain">點擊或拖曳照片至此處上傳</div>
-          <div class="dropzone-sub" id="dropzoneSub">自動裁切為 1080 × 1350 (4:5)</div>
         </label>
         <div class="photo-meta" id="photoMeta" style="display: none;">
           <span id="photoName">已載入照片</span>
@@ -790,40 +803,51 @@
         <div class="slider-row">
           <div class="slider-head">
             <span>背景暗度遮罩</span>
-            <span id="scrimVal">74%</span>
+            <span id="scrimVal">82%</span>
           </div>
-          <input type="range" id="scrimOpacity" min="0" max="92" value="74" />
+          <input type="range" id="scrimOpacity" min="0" max="95" value="82" />
         </div>
       </div>
 
-      <div class="section">
+      <!-- Index Card Mode Controls -->
+      <div class="section" data-mode-panel="card">
         <div class="section-title">
           <span>2. 指數與漲跌數值</span>
-          <span class="section-hint">尺寸與排版完全比照範本</span>
+          <span class="section-hint">數值可自由手動微調</span>
         </div>
         <div class="grid-2">
           <div class="field">
-            <label for="titleInput">標題名稱（Eb）</label>
+            <label for="titleInput">標題名稱</label>
             <input class="input" id="titleInput" type="text" value="加權指數" placeholder="例如：標普500" />
           </div>
           <div class="field">
-            <label for="mainValueInput">收盤指數（Eb）</label>
-            <input class="input" id="mainValueInput" type="text" value="40194" placeholder="例如：7332" />
+            <label for="mainValueInput">收盤指數</label>
+            <input class="input" id="mainValueInput" type="text" inputmode="numeric" value="40194" placeholder="例如：7175" />
+          </div>
+        </div>
+        <div class="field">
+          <label>漲跌方向</label>
+          <div class="segmented segmented-2" role="group" aria-label="漲跌方向">
+            <button type="button" class="seg-btn active" id="dirBtnUp" data-direction="up">漲</button>
+            <button type="button" class="seg-btn" id="dirBtnDown" data-direction="down">跌</button>
           </div>
         </div>
         <div class="grid-2">
           <div class="field">
-            <label for="pctInput">漲跌幅（Bd）</label>
-            <input class="input" id="pctInput" type="text" value="+0.26%" placeholder="例如：-0.11%" />
+            <label for="pctInput">漲跌幅</label>
+            <div class="input-affix-wrap">
+              <input class="input" id="pctInput" type="text" inputmode="decimal" value="0.26" placeholder="例如：2.02" />
+              <span class="input-suffix">%</span>
+            </div>
           </div>
           <div class="field">
-            <label for="ptsInput">漲跌點數（Bd）</label>
-            <input class="input" id="ptsInput" type="text" value="+102.8" placeholder="例如：-7.78" />
+            <label for="ptsInput">漲跌點數</label>
+            <input class="input" id="ptsInput" type="text" inputmode="decimal" value="102.8" placeholder="例如：147.8" />
           </div>
         </div>
       </div>
 
-      <div class="section">
+      <div class="section" data-mode-panel="card">
         <div class="section-title">
           <span>3. 漲跌色系</span>
           <button type="button" class="link-btn" id="btnConvention">目前：台股紅漲綠跌</button>
@@ -846,32 +870,70 @@
         </div>
       </div>
 
-      <div class="section">
+      <div class="section" data-mode-panel="card">
         <div class="section-title">
           <span>4. 底部資訊與帳號浮水印</span>
         </div>
         <div class="grid-2">
           <div class="field">
-            <label for="dateInput">
-              <span>日期（Rg）</span>
-              <button type="button" class="link-btn" id="btnToday">帶入今天</button>
-            </label>
-            <input class="input" id="dateInput" type="text" value="20261118" placeholder="YYYYMMDD" />
+            <label for="dateInput">日期</label>
+            <input class="input" id="dateInput" type="text" inputmode="numeric" value="" placeholder="YYYYMMDD" />
           </div>
           <div class="field">
-            <label for="handleInput">右下帳號（Bd）</label>
+            <label for="handleInput">右下帳號</label>
             <input class="input" id="handleInput" type="text" value="@10.newsss" placeholder="@your.account" />
           </div>
         </div>
         <div class="field">
-          <label for="subtitleInput">左下副標題（Rg）</label>
+          <label for="subtitleInput">左下副標題</label>
           <input class="input" id="subtitleInput" type="text" value="台股收盤指數快報" placeholder="例如：美股收盤指數快報" />
+        </div>
+      </div>
+
+      <!-- Thumbnail Maker Mode Controls (9:16) -->
+      <div class="section mode-hidden" data-mode-panel="thumb">
+        <div class="section-title">
+          <span>2. 縮圖文字內容</span>
+          <button type="button" class="link-btn" id="btnResetThumbSize">重設字級</button>
+        </div>
+        <div class="field">
+          <label for="thumbMainInput">
+            <span>第一段主標（Eb）</span>
+            <span class="section-hint">按 Enter 自行決定換行</span>
+          </label>
+          <textarea class="input textarea" id="thumbMainInput" rows="3" placeholder="輸入主標題，按 Enter 自行換行">賣壓沉重
+挫1768點</textarea>
+        </div>
+        <div class="field">
+          <label for="thumbSubInput">第二段副標（Bd）</label>
+          <input class="input" id="thumbSubInput" type="text" value="新台幣貶破33元" placeholder="例如：新台幣貶破33元" />
+        </div>
+        <div class="color-custom-row">
+          <span>副標顏色（預設 #EEF61D）</span>
+          <div class="color-picker-wrap">
+            <input type="color" id="thumbSubColorPicker" value="#eef61d" aria-label="副標文字顏色" />
+            <button type="button" class="link-btn" id="btnResetThumbColor">重設 #EEF61D</button>
+          </div>
+        </div>
+        <div class="slider-row">
+          <div class="slider-head">
+            <span>主標字級</span>
+            <span id="thumbMainSizeVal">204 px</span>
+          </div>
+          <input type="range" id="thumbMainSize" min="120" max="260" value="204" />
+        </div>
+        <div class="slider-row">
+          <div class="slider-head">
+            <span>副標字級</span>
+            <span id="thumbSubSizeVal">98 px</span>
+          </div>
+          <input type="range" id="thumbSubSize" min="56" max="140" value="98" />
         </div>
       </div>
 
       <div class="section">
         <div class="section-title">
-          <span>5. 字體檔案（Eb / Bd / Rg）</span>
+          <span id="fontSectionTitle">5. 字體檔案（Eb / Bd / Rg）</span>
           <span class="section-hint">請選沒有 ._ 的正式字體檔</span>
         </div>
         <input type="file" id="fontInputEb" class="sr-file" />
@@ -899,7 +961,7 @@
         <canvas id="cardCanvas" width="1080" height="1350"></canvas>
       </div>
       <div class="preview-footer">
-        <span>輸出尺寸：1080 × 1350 px (PNG)</span>
+        <span id="previewSizeLabel">輸出尺寸：1080 × 1350 px (PNG)</span>
         <span>上傳照片後可直接在圖上拖曳構圖</span>
       </div>
       <div class="export-bar">
@@ -913,86 +975,148 @@
 
   <script>
     (function () {
-      const CANVAS_W = 1080;
-      const CANVAS_H = 1350;
+      /* =====================================================================
+         Google Sheet 發布成 CSV 的預設網址（部署到伺服器時可直接填在這裡）：
+         在 Google 試算表點「檔案 → 共用 → 發布到網路 → 選擇工作表 → 逗號分隔值 (.csv)」，
+         把網址貼到下方引號內，網頁開啟就會自動抓取最新數值；也可以直接在頁面輸入框貼上。
+      ===================================================================== */
+      const DEFAULT_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRIuivoYQxdu0ws7xC3_5rx47NZhw_JJi1_Ye_JrRnSpJohFyBpnNJquXDtZj0yu4v37hvNkFbkSsfK/pubhtml';
+
+      const CARD_W = 1080;
+      const CARD_H = 1350;
+      const THUMB_W = 1080;
+      const THUMB_H = 1920;
       const RED_HEX = '#e3433d';
       const GREEN_HEX = '#5f9500';
+      const THUMB_SUB_DEFAULT_HEX = '#eef61d';
+      const SHEET_URL_STORAGE_KEY = 'card_sheet_csv_url';
+
+      const MARKET_META = {
+        '台灣加權': { market: '台股 · 台灣加權', title: '加權指數', subtitle: '台股收盤指數快報' },
+        '加權指數': { market: '台股 · 加權指數', title: '加權指數', subtitle: '台股收盤指數快報' },
+        '標普500': { market: '美股 · 標普500', title: '標普500', subtitle: '美股收盤指數快報' },
+        '那斯達克': { market: '美股 · 那斯達克', title: '那斯達克', subtitle: '美股收盤指數快報' },
+        '道瓊指數': { market: '美股 · 道瓊指數', title: '道瓊指數', subtitle: '美股收盤指數快報' },
+        '道瓊工業': { market: '美股 · 道瓊工業', title: '道瓊工業', subtitle: '美股收盤指數快報' },
+        '費城半導體': { market: '美股 · 費城半導體', title: '費城半導體', subtitle: '美股收盤指數快報' }
+      };
+
+      const PRESET_ORDER = ['台灣加權', '標普500', '那斯達克', '道瓊指數', '費城半導體'];
 
       const PRESETS = {
-        twii: {
-          market: '台股 · 加權指數',
+        '台灣加權': {
+          market: '台股 · 台灣加權',
           title: '加權指數',
           mainValue: '40194',
-          pct: '+0.26%',
-          pts: '+102.8',
+          direction: 'up',
+          pct: '0.26',
+          pts: '102.8',
           subtitle: '台股收盤指數快報',
           colorMode: 'auto'
         },
-        sp500: {
+        '標普500': {
           market: '美股 · 標普500',
           title: '標普500',
-          mainValue: '7332',
-          pct: '-0.11%',
-          pts: '-7.78',
+          mainValue: '7175',
+          direction: 'down',
+          pct: '2.02',
+          pts: '147.8',
           subtitle: '美股收盤指數快報',
           colorMode: 'auto'
         },
-        nasdaq: {
+        '那斯達克': {
           market: '美股 · 那斯達克',
           title: '那斯達克',
-          mainValue: '23480',
-          pct: '+0.85%',
-          pts: '+198.4',
+          mainValue: '23879',
+          direction: 'down',
+          pct: '2.25',
+          pts: '550.7',
           subtitle: '美股收盤指數快報',
           colorMode: 'auto'
         },
-        dji: {
-          market: '美股 · 道瓊工業',
-          title: '道瓊工業',
-          mainValue: '46210',
-          pct: '-0.32%',
-          pts: '-148.5',
+        '道瓊指數': {
+          market: '美股 · 道瓊指數',
+          title: '道瓊指數',
+          mainValue: '49097',
+          direction: 'down',
+          pct: '2.19',
+          pts: '1101.1',
           subtitle: '美股收盤指數快報',
           colorMode: 'auto'
         },
-        sox: {
+        '費城半導體': {
           market: '美股 · 費城半導體',
           title: '費城半導體',
-          mainValue: '5842',
-          pct: '+1.42%',
-          pts: '+81.9',
+          mainValue: '9419',
+          direction: 'down',
+          pct: '2.41',
+          pts: '233.1',
           subtitle: '美股收盤指數快報',
           colorMode: 'auto'
         }
       };
 
+      function getTodayYYYYMMDD() {
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return y + m + day;
+      }
+
+      const savedSheetUrl = (localStorage.getItem(SHEET_URL_STORAGE_KEY) || '').trim();
+
       const state = {
+        mode: 'card',
+        selectedMarket: '台灣加權',
+        currentMarket: '台股 · 台灣加權',
         title: '加權指數',
         mainValue: '40194',
-        pct: '+0.26%',
-        pts: '+102.8',
-        date: '20261118',
+        direction: 'up',
+        pct: '0.26',
+        pts: '102.8',
+        date: getTodayYYYYMMDD(),
         subtitle: '台股收盤指數快報',
         handle: localStorage.getItem('card_handle') || '@10.newsss',
         colorMode: 'auto',
         customColor: '#e3433d',
         redOnUp: localStorage.getItem('card_red_on_up') !== 'false',
-        scrim: 74,
+        scrim: 82,
         photo: null,
         photoName: '',
         photoZoom: 100,
         photoOffsetX: 0,
-        photoOffsetY: 0
+        photoOffsetY: 0,
+        thumbMain: '賣壓沉重\n挫1768點',
+        thumbSub: '新台幣貶破33元',
+        thumbSubColor: THUMB_SUB_DEFAULT_HEX,
+        thumbMainSize: 204,
+        thumbSubSize: 98,
+        sheetCsvUrl: DEFAULT_SHEET_CSV_URL || savedSheetUrl,
+        sheetData: {}
       };
+
+      function getCanvasSize() {
+        return state.mode === 'thumb'
+          ? { w: THUMB_W, h: THUMB_H }
+          : { w: CARD_W, h: CARD_H };
+      }
 
       const canvas = document.getElementById('cardCanvas');
       const ctx = canvas.getContext('2d');
 
       const el = {
-        hamBtn: document.getElementById('hamBtn'),
-        marketDrawer: document.getElementById('marketDrawer'),
-        menuBackdrop: document.getElementById('menuBackdrop'),
         currentMarketLabel: document.getElementById('currentMarketLabel'),
+        modeTabCard: document.getElementById('modeTabCard'),
+        modeTabThumb: document.getElementById('modeTabThumb'),
+        modeRatioHint: document.getElementById('modeRatioHint'),
+        marketSelect: document.getElementById('marketSelect'),
+        sheetCsvUrl: document.getElementById('sheetCsvUrl'),
+        btnSyncSheet: document.getElementById('btnSyncSheet'),
+        sheetSyncBadge: document.getElementById('sheetSyncBadge'),
+        sheetSyncStatus: document.getElementById('sheetSyncStatus'),
+        fontSectionTitle: document.getElementById('fontSectionTitle'),
+        previewSizeLabel: document.getElementById('previewSizeLabel'),
         photoInput: document.getElementById('photoInput'),
         dropzone: document.getElementById('dropzone'),
         dropzoneMain: document.getElementById('dropzoneMain'),
@@ -1006,28 +1130,34 @@
         scrimVal: document.getElementById('scrimVal'),
         titleInput: document.getElementById('titleInput'),
         mainValueInput: document.getElementById('mainValueInput'),
+        dirBtnUp: document.getElementById('dirBtnUp'),
+        dirBtnDown: document.getElementById('dirBtnDown'),
         pctInput: document.getElementById('pctInput'),
         ptsInput: document.getElementById('ptsInput'),
         dateInput: document.getElementById('dateInput'),
         subtitleInput: document.getElementById('subtitleInput'),
         handleInput: document.getElementById('handleInput'),
-        btnToday: document.getElementById('btnToday'),
         btnConvention: document.getElementById('btnConvention'),
         customColorPicker: document.getElementById('customColorPicker'),
         btnUseCustomColor: document.getElementById('btnUseCustomColor'),
+        thumbMainInput: document.getElementById('thumbMainInput'),
+        thumbSubInput: document.getElementById('thumbSubInput'),
+        thumbSubColorPicker: document.getElementById('thumbSubColorPicker'),
+        btnResetThumbColor: document.getElementById('btnResetThumbColor'),
+        thumbMainSize: document.getElementById('thumbMainSize'),
+        thumbMainSizeVal: document.getElementById('thumbMainSizeVal'),
+        thumbSubSize: document.getElementById('thumbSubSize'),
+        thumbSubSizeVal: document.getElementById('thumbSubSizeVal'),
+        btnResetThumbSize: document.getElementById('btnResetThumbSize'),
         canvasFrame: document.getElementById('canvasFrame'),
         toast: document.getElementById('toast')
       };
 
       el.handleInput.value = state.handle;
-
-      function getTodayYYYYMMDD() {
-        const d = new Date();
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return y + m + day;
-      }
+      el.dateInput.value = state.date;
+      if (el.sheetCsvUrl) el.sheetCsvUrl.value = state.sheetCsvUrl;
+      el.scrimOpacity.value = String(state.scrim);
+      el.scrimVal.textContent = state.scrim + '%';
 
       let toastTimer;
       function showToast(msg) {
@@ -1037,35 +1167,36 @@
         toastTimer = setTimeout(() => el.toast.classList.remove('show'), 2800);
       }
 
-      // Hamburger menu toggle
-      function setMenuOpen(open) {
-        el.marketDrawer.classList.toggle('open', open);
-        el.menuBackdrop.classList.toggle('open', open);
-        el.hamBtn.setAttribute('aria-expanded', String(open));
-      }
-
-      el.hamBtn.addEventListener('click', () => {
-        const isOpen = el.marketDrawer.classList.contains('open');
-        setMenuOpen(!isOpen);
-      });
-
-      el.menuBackdrop.addEventListener('click', () => setMenuOpen(false));
-      window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') setMenuOpen(false);
-      });
-
       function resolveThemeColor() {
         if (state.colorMode === 'red') return RED_HEX;
         if (state.colorMode === 'green') return GREEN_HEX;
         if (state.colorMode === 'custom') return state.customColor;
 
-        const raw = (state.pct || state.pts || '').trim();
-        const isNegative = raw.startsWith('-') || raw.startsWith('－') || raw.startsWith('▼');
+        const isNegative = state.direction === 'down';
         if (state.redOnUp) {
           return isNegative ? GREEN_HEX : RED_HEX;
         } else {
           return isNegative ? RED_HEX : GREEN_HEX;
         }
+      }
+
+      function formatSignedPct(rawValue, direction) {
+        const clean = String(rawValue || '')
+          .trim()
+          .replace(/^[+\-＋－▲▼\s]+/, '')
+          .replace(/%+\s*$/, '');
+        if (!clean) return '';
+        const sign = direction === 'down' ? '-' : '+';
+        return `${sign}${clean}%`;
+      }
+
+      function formatSignedPts(rawValue, direction) {
+        const clean = String(rawValue || '')
+          .trim()
+          .replace(/^[+\-＋－▲▼\s]+/, '');
+        if (!clean) return '';
+        const sign = direction === 'down' ? '-' : '+';
+        return `${sign}${clean}`;
       }
 
       function drawCenteredVisualText(text, centerX, centerY, align) {
@@ -1088,69 +1219,197 @@
         return size;
       }
 
-      function renderCard() {
-        ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+      function renderBackgroundAndScrim(W, H, isThumb) {
+        ctx.clearRect(0, 0, W, H);
 
         if (state.photo) {
           const img = state.photo;
-          const baseScale = Math.max(CANVAS_W / img.width, CANVAS_H / img.height);
+          const baseScale = Math.max(W / img.width, H / img.height);
           const scale = baseScale * (state.photoZoom / 100);
           const drawW = img.width * scale;
           const drawH = img.height * scale;
-          const drawX = (CANVAS_W - drawW) / 2 + state.photoOffsetX;
-          const drawY = (CANVAS_H - drawH) / 2 + state.photoOffsetY;
+          const drawX = (W - drawW) / 2 + state.photoOffsetX;
+          const drawY = (H - drawH) / 2 + state.photoOffsetY;
 
           ctx.fillStyle = '#0c0d10';
-          ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+          ctx.fillRect(0, 0, W, H);
           ctx.drawImage(img, drawX, drawY, drawW, drawH);
         } else {
-          const bgGrad = ctx.createLinearGradient(0, 0, 0, CANVAS_H);
+          const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
           bgGrad.addColorStop(0, '#1e222b');
           bgGrad.addColorStop(1, '#101217');
           ctx.fillStyle = bgGrad;
-          ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+          ctx.fillRect(0, 0, W, H);
         }
 
         const alpha = state.scrim / 100;
         if (alpha > 0) {
-          const scrimGrad = ctx.createLinearGradient(0, 0, 0, CANVAS_H);
-          scrimGrad.addColorStop(0, `rgba(0, 0, 0, ${Math.max(0, alpha - 0.04).toFixed(3)})`);
-          scrimGrad.addColorStop(0.68, `rgba(0, 0, 0, ${alpha.toFixed(3)})`);
-          scrimGrad.addColorStop(1, `rgba(0, 0, 0, ${Math.min(0.96, alpha + 0.11).toFixed(3)})`);
+          const scrimGrad = ctx.createLinearGradient(0, 0, 0, H);
+          if (isThumb) {
+            // 9:16 縮圖遮罩：下方透明度比上方低 5%（黑度高 5%）
+            scrimGrad.addColorStop(0, `rgba(0, 0, 0, ${Math.max(0, alpha - 0.025).toFixed(3)})`);
+            scrimGrad.addColorStop(1, `rgba(0, 0, 0, ${Math.min(0.96, alpha + 0.025).toFixed(3)})`);
+          } else {
+            scrimGrad.addColorStop(0, `rgba(0, 0, 0, ${Math.max(0, alpha - 0.04).toFixed(3)})`);
+            scrimGrad.addColorStop(0.68, `rgba(0, 0, 0, ${alpha.toFixed(3)})`);
+            scrimGrad.addColorStop(1, `rgba(0, 0, 0, ${Math.min(0.96, alpha + 0.11).toFixed(3)})`);
+          }
           ctx.fillStyle = scrimGrad;
-          ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+          ctx.fillRect(0, 0, W, H);
+        }
+      }
+
+      function renderThumbnail(W, H, fontEb, fontBd) {
+        const rawLines = (state.thumbMain || '').replace(/\r\n/g, '\n').split('\n');
+        while (rawLines.length && rawLines[0].trim() === '') rawLines.shift();
+        while (rawLines.length && rawLines[rawLines.length - 1].trim() === '') rawLines.pop();
+
+        const maxTextW = 920;
+        let mainSize = state.thumbMainSize;
+        const nonEmptyLines = rawLines.filter((l) => l.trim() !== '');
+        if (nonEmptyLines.length > 0) {
+          while (mainSize > 36) {
+            ctx.font = `800 ${mainSize}px ${fontEb}`;
+            let maxMeasured = 0;
+            for (const line of nonEmptyLines) {
+              const w = ctx.measureText(line).width;
+              if (w > maxMeasured) maxMeasured = w;
+            }
+            if (maxMeasured <= maxTextW) break;
+            mainSize -= 2;
+          }
         }
 
-        const themeColor = resolveThemeColor();
+        ctx.font = `800 ${mainSize}px ${fontEb}`;
+        const measuredMain = rawLines.map((line) => {
+          if (line.trim() === '') {
+            return { text: '', ascent: 0, descent: 0, height: Math.round(mainSize * 0.45) };
+          }
+          const m = ctx.measureText(line);
+          const ascent = m.actualBoundingBoxAscent || mainSize * 0.78;
+          const descent = m.actualBoundingBoxDescent || mainSize * 0.12;
+          return { text: line, ascent, descent, height: ascent + descent };
+        });
+
+        const subText = (state.thumbSub || '').trim();
+        let subSize = state.thumbSubSize;
+        let measuredSub = null;
+        if (subText) {
+          subSize = fitFontSize(subText, 700, state.thumbSubSize, maxTextW, fontBd);
+          ctx.font = `700 ${subSize}px ${fontBd}`;
+          const sm = ctx.measureText(subText);
+          const ascent = sm.actualBoundingBoxAscent || subSize * 0.78;
+          const descent = sm.actualBoundingBoxDescent || subSize * 0.12;
+          measuredSub = { text: subText, ascent, descent, height: ascent + descent };
+        }
+
+        const lineGap = Math.round(mainSize * 0.11);
+        const subGap = Math.round(mainSize * 0.26);
+
+        let totalHeight = 0;
+        measuredMain.forEach((item, idx) => {
+          totalHeight += item.height;
+          if (idx < measuredMain.length - 1) totalHeight += lineGap;
+        });
+        if (measuredSub) {
+          if (measuredMain.length > 0) totalHeight += subGap;
+          totalHeight += measuredSub.height;
+        }
+
+        let cursorY = (H - totalHeight) / 2;
+
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'alphabetic';
+
+        if (measuredMain.length > 0) {
+          ctx.font = `800 ${mainSize}px ${fontEb}`;
+          ctx.fillStyle = '#ffffff';
+          measuredMain.forEach((item, idx) => {
+            if (item.text) {
+              ctx.fillText(item.text, W / 2, cursorY + item.ascent);
+            }
+            cursorY += item.height;
+            if (idx < measuredMain.length - 1) cursorY += lineGap;
+          });
+        }
+
+        if (measuredSub) {
+          if (measuredMain.length > 0) cursorY += subGap;
+          ctx.font = `700 ${subSize}px ${fontBd}`;
+          ctx.fillStyle = state.thumbSubColor || THUMB_SUB_DEFAULT_HEX;
+          ctx.fillText(measuredSub.text, W / 2, cursorY + measuredSub.ascent);
+        }
+      }
+
+      function renderCard() {
+        const { w: W, h: H } = getCanvasSize();
+        if (canvas.width !== W || canvas.height !== H) {
+          canvas.width = W;
+          canvas.height = H;
+        }
+
+        const isThumb = state.mode === 'thumb';
+        renderBackgroundAndScrim(W, H, isThumb);
+
         const fontEb = '"CardFontEb", "Poppins", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif';
         const fontBd = '"CardFontBd", "Poppins", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif';
         const fontRg = '"CardFontRg", "Poppins", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif';
 
-        // 3. Title -> Eb
-        const titleText = state.title || '';
+        if (isThumb) {
+          renderThumbnail(W, H, fontEb, fontBd);
+          return;
+        }
+
+        const themeColor = resolveThemeColor();
+
+        // Centerpiece group (Title + Main Box + White Sub-Bar) centered vertically & horizontally
+        const boxW = 880;
+        const boxX = (W - boxW) / 2;
+        const mainBoxH = 280;
+        const subBarH = 110;
+        const titleGap = 65;
+
+        const titleText = (state.title || '').trim();
+        let titleFontSize = 156;
+        let titleVisualH = 0;
         if (titleText) {
-          fitFontSize(titleText, 800, 156, 920, fontEb);
+          titleFontSize = fitFontSize(titleText, 800, 156, 920, fontEb);
+          ctx.font = `800 ${titleFontSize}px ${fontEb}`;
+          const tm = ctx.measureText(titleText);
+          const ascent = tm.actualBoundingBoxAscent || titleFontSize * 0.78;
+          const descent = tm.actualBoundingBoxDescent || titleFontSize * 0.12;
+          titleVisualH = ascent + descent;
+        }
+
+        const totalGroupH = (titleText ? titleVisualH + titleGap : 0) + mainBoxH + subBarH;
+        const groupTop = (H - totalGroupH) / 2;
+
+        // 3. Title -> Eb
+        if (titleText) {
+          ctx.font = `800 ${titleFontSize}px ${fontEb}`;
           ctx.fillStyle = '#ffffff';
-          drawCenteredVisualText(titleText, CANVAS_W / 2, 350, 'center');
+          drawCenteredVisualText(titleText, W / 2, groupTop + titleVisualH / 2, 'center');
         }
 
         // 4. Main Box + Number -> Eb
+        const mainBoxY = Math.round(groupTop + (titleText ? titleVisualH + titleGap : 0));
         ctx.fillStyle = themeColor;
-        ctx.fillRect(100, 480, 880, 280);
+        ctx.fillRect(boxX, mainBoxY, boxW, mainBoxH);
 
         const mainText = state.mainValue || '';
         if (mainText) {
           fitFontSize(mainText, 800, 284, 824, fontEb);
           ctx.fillStyle = '#ffffff';
-          drawCenteredVisualText(mainText, CANVAS_W / 2, 620, 'center');
+          drawCenteredVisualText(mainText, W / 2, mainBoxY + mainBoxH / 2, 'center');
         }
 
         // 5. White Sub-Bar -> Bd
+        const subBarY = mainBoxY + mainBoxH;
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(100, 760, 880, 110);
+        ctx.fillRect(boxX, subBarY, boxW, subBarH);
 
-        const pctText = state.pct || '';
-        const ptsText = state.pts || '';
+        const pctText = formatSignedPct(state.pct, state.direction);
+        const ptsText = formatSignedPts(state.pts, state.direction);
         let subSize = 78;
         while (subSize > 24) {
           ctx.font = `700 ${subSize}px ${fontBd}`;
@@ -1160,8 +1419,9 @@
         }
         ctx.font = `700 ${subSize}px ${fontBd}`;
         ctx.fillStyle = themeColor;
-        if (pctText) drawCenteredVisualText(pctText, 120, 815, 'left');
-        if (ptsText) drawCenteredVisualText(ptsText, 960, 815, 'right');
+        const subCenterY = subBarY + subBarH / 2;
+        if (pctText) drawCenteredVisualText(pctText, boxX + 20, subCenterY, 'left');
+        if (ptsText) drawCenteredVisualText(ptsText, boxX + boxW - 20, subCenterY, 'right');
 
         // 6. Bottom-Left Accent Bar
         ctx.fillStyle = themeColor;
@@ -1185,6 +1445,316 @@
           drawCenteredVisualText(handleText, 980, 1250, 'right');
         }
       }
+
+      // Google Sheet CSV parser (RFC-4180 compliant, handles quoted thousands commas)
+      function parseCSV(text) {
+        const cleaned = String(text || '').replace(/^\uFEFF/, '');
+        const rows = [];
+        let row = [];
+        let field = '';
+        let inQuotes = false;
+
+        for (let i = 0; i < cleaned.length; i++) {
+          const ch = cleaned[i];
+          if (inQuotes) {
+            if (ch === '"') {
+              if (cleaned[i + 1] === '"') {
+                field += '"';
+                i++;
+              } else {
+                inQuotes = false;
+              }
+            } else {
+              field += ch;
+            }
+          } else {
+            if (ch === '"') {
+              inQuotes = true;
+            } else if (ch === ',') {
+              row.push(field.trim());
+              field = '';
+            } else if (ch === '\r') {
+              if (cleaned[i + 1] === '\n') i++;
+              row.push(field.trim());
+              rows.push(row);
+              row = [];
+              field = '';
+            } else if (ch === '\n') {
+              row.push(field.trim());
+              rows.push(row);
+              row = [];
+              field = '';
+            } else {
+              field += ch;
+            }
+          }
+        }
+        if (field.length > 0 || row.length > 0) {
+          row.push(field.trim());
+          rows.push(row);
+        }
+        return rows.filter((r) => r.some((cell) => cell !== ''));
+      }
+
+      function normalizeCsvUrl(rawUrl) {
+        const trimmed = String(rawUrl || '').trim();
+        if (!trimmed) return '';
+        try {
+          const url = new URL(trimmed);
+          if (url.pathname.endsWith('/pubhtml')) {
+            url.pathname = url.pathname.replace(/\/pubhtml$/, '/pub');
+            url.searchParams.set('output', 'csv');
+          } else if (url.pathname.endsWith('/pub') && !url.searchParams.has('output')) {
+            url.searchParams.set('output', 'csv');
+          }
+          return url.toString();
+        } catch (_) {
+          return trimmed;
+        }
+      }
+
+      function parseNumericCell(raw) {
+        const str = String(raw || '').trim();
+        if (!str) return null;
+        const normalized = str
+          .replace(/,/g, '')
+          .replace(/%/g, '')
+          .replace(/＋/g, '+')
+          .replace(/－/g, '-')
+          .replace(/[▲▼\s]/g, '');
+        const num = Number.parseFloat(normalized);
+        return Number.isFinite(num) ? num : null;
+      }
+
+      function parseSheetMetrics(rows) {
+        if (!rows || rows.length < 2) return {};
+
+        const headerIdx = rows.findIndex((r) => r.filter((c) => c !== '').length >= 2);
+        if (headerIdx === -1) return {};
+        const headerRow = rows[headerIdx];
+
+        const findRowByKeyword = (regex, fallbackOffset) => {
+          const matched = rows.find((r, idx) => idx > headerIdx && regex.test(String(r[0] || '')));
+          return matched || rows[headerIdx + fallbackOffset] || [];
+        };
+
+        const priceRow = findRowByKeyword(/股價|收盤|指數|價格|close|price/i, 1);
+        const pctRow = findRowByKeyword(/漲跌幅|幅度|百分比|%|pct|percent/i, 2);
+        const ptsRow = findRowByKeyword(/漲跌點|點數|漲跌(?!幅)|pts|points|change/i, 3);
+
+        const result = {};
+        for (let col = 1; col < headerRow.length; col++) {
+          const rawName = String(headerRow[col] || '').trim();
+          if (!rawName) continue;
+
+          const priceRaw = priceRow[col] || '';
+          const pctRaw = pctRow[col] || '';
+          const ptsRaw = ptsRow[col] || '';
+
+          const priceNum = parseNumericCell(priceRaw);
+          const pctNum = parseNumericCell(pctRaw);
+          const ptsNum = parseNumericCell(ptsRaw);
+
+          if (priceNum === null && pctNum === null && ptsNum === null) continue;
+
+          const isNegative =
+            (pctNum !== null && pctNum < 0) ||
+            (ptsNum !== null && ptsNum < 0) ||
+            /^[-－▼]/.test(String(pctRaw).trim()) ||
+            /^[-－▼]/.test(String(ptsRaw).trim());
+
+          const meta = MARKET_META[rawName] || {
+            market: rawName,
+            title: rawName,
+            subtitle: /台|加權|櫃買/.test(rawName) ? '台股收盤指數快報' : '美股收盤指數快報'
+          };
+
+          result[rawName] = {
+            market: meta.market,
+            title: meta.title,
+            subtitle: meta.subtitle,
+            // 股價捨棄小數點之後，計算到個位數
+            mainValue: priceNum !== null ? String(Math.trunc(priceNum)) : '',
+            direction: isNegative ? 'down' : 'up',
+            // 漲跌幅計到小數點下兩位（不含正負號與 %）
+            pct: pctNum !== null ? Math.abs(pctNum).toFixed(2) : '',
+            // 漲跌點計到小數點下一位（不含正負號）
+            pts: ptsNum !== null ? Math.abs(ptsNum).toFixed(1) : '',
+            colorMode: 'auto'
+          };
+        }
+
+        return result;
+      }
+
+      function rebuildMarketSelectOptions(preferredKey) {
+        const keys = [];
+        PRESET_ORDER.forEach((k) => {
+          if (!keys.includes(k)) keys.push(k);
+        });
+        Object.keys(state.sheetData).forEach((k) => {
+          if (!keys.includes(k)) keys.push(k);
+        });
+
+        el.marketSelect.innerHTML = '';
+        keys.forEach((key) => {
+          const opt = document.createElement('option');
+          opt.value = key;
+          opt.textContent = key;
+          el.marketSelect.appendChild(opt);
+        });
+
+        const nextKey = keys.includes(preferredKey) ? preferredKey : keys[0];
+        el.marketSelect.value = nextKey;
+        state.selectedMarket = nextKey;
+      }
+
+      function updateDirectionUI() {
+        document.querySelectorAll('[data-direction]').forEach((btn) => {
+          btn.classList.toggle('active', btn.dataset.direction === state.direction);
+        });
+      }
+
+      function applyMarketSelection(marketKey) {
+        const data = state.sheetData[marketKey] || PRESETS[marketKey];
+        if (!data) return;
+
+        state.selectedMarket = marketKey;
+        state.currentMarket = data.market || marketKey;
+        state.title = data.title || marketKey;
+        state.mainValue = data.mainValue || '';
+        state.direction = data.direction === 'down' ? 'down' : 'up';
+        state.pct = data.pct || '';
+        state.pts = data.pts || '';
+        state.subtitle = data.subtitle || state.subtitle;
+        state.colorMode = data.colorMode || 'auto';
+
+        el.marketSelect.value = marketKey;
+        el.titleInput.value = state.title;
+        el.mainValueInput.value = state.mainValue;
+        el.pctInput.value = state.pct;
+        el.ptsInput.value = state.pts;
+        el.subtitleInput.value = state.subtitle;
+
+        if (state.mode === 'card' && el.currentMarketLabel) {
+          el.currentMarketLabel.textContent = state.currentMarket;
+        }
+        updateDirectionUI();
+        updateColorModeUI();
+        renderCard();
+      }
+
+      function setSyncStatus(badgeText, message, statusClass) {
+        if (el.sheetSyncBadge) el.sheetSyncBadge.textContent = badgeText;
+        if (el.sheetSyncStatus) {
+          el.sheetSyncStatus.textContent = message;
+          el.sheetSyncStatus.classList.remove('ok', 'err');
+          if (statusClass) el.sheetSyncStatus.classList.add(statusClass);
+        }
+      }
+
+      async function fetchSheetCSV(rawUrl, silent) {
+        const normalized = normalizeCsvUrl(rawUrl);
+        if (!normalized) {
+          setSyncStatus('手動模式', '請先貼上 Google Sheet 發布後的 .csv 連結再按「抓取」。');
+          if (!silent) showToast('請先貼上 Google Sheet 的 .csv 連結');
+          return;
+        }
+
+        state.sheetCsvUrl = normalized;
+        if (el.sheetCsvUrl) el.sheetCsvUrl.value = normalized;
+        localStorage.setItem(SHEET_URL_STORAGE_KEY, normalized);
+
+        if (el.btnSyncSheet) {
+          el.btnSyncSheet.disabled = true;
+          el.btnSyncSheet.textContent = '抓取中…';
+        }
+        setSyncStatus('同步中…', '正在從 Google Sheet 讀取最新數據…');
+
+        try {
+          const sep = normalized.includes('?') ? '&' : '?';
+          const fetchUrl = `${normalized}${sep}_t=${Date.now()}`;
+          const res = await fetch(fetchUrl, { cache: 'no-store' });
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+          }
+          const csvText = await res.text();
+          if (/<!doctype html|<html/i.test(csvText.slice(0, 300))) {
+            throw new Error('回傳內容為網頁而非 CSV，請確認網址為「發布到網路 (.csv)」格式');
+          }
+
+          const rows = parseCSV(csvText);
+          const parsed = parseSheetMetrics(rows);
+          const marketNames = Object.keys(parsed);
+          if (marketNames.length === 0) {
+            throw new Error('CSV 內找不到市場欄位，請確認第一列為指數名稱、左欄為股價/漲跌幅/漲跌點');
+          }
+
+          state.sheetData = parsed;
+          const keepKey = parsed[state.selectedMarket] ? state.selectedMarket : marketNames[0];
+          rebuildMarketSelectOptions(keepKey);
+          applyMarketSelection(keepKey);
+
+          const now = new Date();
+          const hh = String(now.getHours()).padStart(2, '0');
+          const mm = String(now.getMinutes()).padStart(2, '0');
+          const ss = String(now.getSeconds()).padStart(2, '0');
+          setSyncStatus(
+            `已同步 ${hh}:${mm}`,
+            `已成功載入 ${marketNames.length} 個市場（${hh}:${mm}:${ss}），切換下方選單即可自動帶入，仍可手動修改。`,
+            'ok'
+          );
+          if (!silent) {
+            showToast(`已同步 ${marketNames.length} 個市場最新數據`);
+          }
+        } catch (err) {
+          const reason = (err && err.message) ? err.message : '網路連線失敗';
+          setSyncStatus('同步失敗', `無法讀取 CSV（${reason}），請確認 Google Sheet 已「發布到網路」為 CSV 格式。`, 'err');
+          if (!silent) {
+            showToast('抓取 Google Sheet 失敗，請檢查 CSV 連結');
+          }
+        } finally {
+          if (el.btnSyncSheet) {
+            el.btnSyncSheet.disabled = false;
+            el.btnSyncSheet.textContent = '抓取';
+          }
+        }
+      }
+
+      el.marketSelect.addEventListener('change', (e) => {
+        applyMarketSelection(e.target.value);
+      });
+
+      if (el.btnSyncSheet) {
+        el.btnSyncSheet.addEventListener('click', () => {
+          fetchSheetCSV(el.sheetCsvUrl ? el.sheetCsvUrl.value : state.sheetCsvUrl, false);
+        });
+      }
+
+      if (el.sheetCsvUrl) {
+        el.sheetCsvUrl.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            fetchSheetCSV(el.sheetCsvUrl.value, false);
+          }
+        });
+      }
+
+      if (el.sheetSyncBadge) {
+        el.sheetSyncBadge.style.cursor = 'pointer';
+        el.sheetSyncBadge.title = '點擊重新抓取 Google Sheet 最新數據';
+        el.sheetSyncBadge.addEventListener('click', () => {
+          if (state.sheetCsvUrl) fetchSheetCSV(state.sheetCsvUrl, false);
+        });
+      }
+
+      document.querySelectorAll('[data-direction]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          state.direction = btn.dataset.direction === 'down' ? 'down' : 'up';
+          updateDirectionUI();
+          renderCard();
+        });
+      });
 
       // IndexedDB persistence for user-selected Eb / Bd / Rg font files
       const DB_NAME = 'MarketCardFontsDB';
@@ -1298,7 +1868,7 @@
           el.photoMeta.style.display = 'flex';
           el.photoName.textContent = state.photoName;
           el.dropzoneMain.textContent = '更換背景照片';
-          el.dropzoneSub.textContent = '目前照片已套用，點擊或拖曳新照片即可替換';
+          if (el.dropzoneSub) el.dropzoneSub.textContent = '目前照片已套用，點擊或拖曳新照片即可替換';
           el.canvasFrame.classList.add('has-photo');
           renderCard();
           showToast('背景照片已套用');
@@ -1318,7 +1888,7 @@
               el.photoMeta.style.display = 'flex';
               el.photoName.textContent = state.photoName;
               el.dropzoneMain.textContent = '更換背景照片';
-              el.dropzoneSub.textContent = '目前照片已套用，點擊或拖曳新照片即可替換';
+              if (el.dropzoneSub) el.dropzoneSub.textContent = '目前照片已套用，點擊或拖曳新照片即可替換';
               el.canvasFrame.classList.add('has-photo');
               renderCard();
               showToast('背景照片已套用');
@@ -1394,7 +1964,7 @@
       el.canvasFrame.addEventListener('pointermove', (e) => {
         if (!isDragging) return;
         const rect = el.canvasFrame.getBoundingClientRect();
-        const scaleFactor = CANVAS_W / rect.width;
+        const scaleFactor = getCanvasSize().w / rect.width;
         state.photoOffsetX = origX + (e.clientX - startX) * scaleFactor;
         state.photoOffsetY = origY + (e.clientY - startY) * scaleFactor;
         renderCard();
@@ -1440,21 +2010,90 @@
       syncTextInput(el.subtitleInput, 'subtitle');
       syncTextInput(el.handleInput, 'handle', 'card_handle');
 
-      el.btnToday.addEventListener('click', () => {
-        const today = getTodayYYYYMMDD();
-        state.date = today;
-        el.dateInput.value = today;
+      syncTextInput(el.thumbMainInput, 'thumbMain');
+      syncTextInput(el.thumbSubInput, 'thumbSub');
+
+      el.thumbSubColorPicker.addEventListener('input', (e) => {
+        state.thumbSubColor = e.target.value;
         renderCard();
       });
 
+      el.btnResetThumbColor.addEventListener('click', () => {
+        state.thumbSubColor = THUMB_SUB_DEFAULT_HEX;
+        el.thumbSubColorPicker.value = THUMB_SUB_DEFAULT_HEX;
+        renderCard();
+      });
+
+      el.thumbMainSize.addEventListener('input', (e) => {
+        state.thumbMainSize = Number(e.target.value);
+        el.thumbMainSizeVal.textContent = state.thumbMainSize + ' px';
+        renderCard();
+      });
+
+      el.thumbSubSize.addEventListener('input', (e) => {
+        state.thumbSubSize = Number(e.target.value);
+        el.thumbSubSizeVal.textContent = state.thumbSubSize + ' px';
+        renderCard();
+      });
+
+      el.btnResetThumbSize.addEventListener('click', () => {
+        state.thumbMainSize = 204;
+        state.thumbSubSize = 98;
+        el.thumbMainSize.value = '204';
+        el.thumbSubSize.value = '98';
+        el.thumbMainSizeVal.textContent = '204 px';
+        el.thumbSubSizeVal.textContent = '98 px';
+        renderCard();
+      });
+
+      function setMode(nextMode) {
+        state.mode = nextMode === 'thumb' ? 'thumb' : 'card';
+        const isThumb = state.mode === 'thumb';
+
+        el.modeTabCard.classList.toggle('active', !isThumb);
+        el.modeTabCard.setAttribute('aria-selected', String(!isThumb));
+        el.modeTabThumb.classList.toggle('active', isThumb);
+        el.modeTabThumb.setAttribute('aria-selected', String(isThumb));
+
+        document.querySelectorAll('[data-mode-panel]').forEach((panel) => {
+          panel.classList.toggle('mode-hidden', panel.dataset.modePanel !== state.mode);
+        });
+
+        el.canvasFrame.classList.toggle('mode-thumb', isThumb);
+        if (el.modeRatioHint) {
+          el.modeRatioHint.textContent = isThumb ? '9:16 封面縮圖' : '4:5 收盤圖卡';
+        }
+        if (el.fontSectionTitle) {
+          el.fontSectionTitle.textContent = isThumb ? '3. 字體檔案（Eb / Bd / Rg）' : '5. 字體檔案（Eb / Bd / Rg）';
+        }
+        if (el.previewSizeLabel) {
+          el.previewSizeLabel.textContent = isThumb
+            ? '輸出尺寸：1080 × 1920 px (PNG)'
+            : '輸出尺寸：1080 × 1350 px (PNG)';
+        }
+        if (!state.photo && el.dropzoneSub) {
+          el.dropzoneSub.textContent = isThumb
+            ? '自動裁切為 1080 × 1920 (9:16)'
+            : '自動裁切為 1080 × 1350 (4:5)';
+        }
+        if (el.currentMarketLabel) {
+          el.currentMarketLabel.textContent = isThumb ? '縮圖製作 · 9:16' : state.currentMarket;
+        }
+
+        renderCard();
+      }
+
+      el.modeTabCard.addEventListener('click', () => setMode('card'));
+      el.modeTabThumb.addEventListener('click', () => setMode('thumb'));
+
       function updateColorModeUI() {
-        document.querySelectorAll('.seg-btn').forEach((btn) => {
+        document.querySelectorAll('[data-color-mode]').forEach((btn) => {
           btn.classList.toggle('active', btn.dataset.colorMode === state.colorMode);
         });
         el.btnConvention.textContent = state.redOnUp ? '目前：台股紅漲綠跌' : '目前：美股綠漲紅跌';
       }
 
-      document.querySelectorAll('.seg-btn').forEach((btn) => {
+      document.querySelectorAll('[data-color-mode]').forEach((btn) => {
         btn.addEventListener('click', () => {
           state.colorMode = btn.dataset.colorMode;
           updateColorModeUI();
@@ -1483,31 +2122,6 @@
         renderCard();
       });
 
-      document.querySelectorAll('.preset-btn').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const p = PRESETS[btn.dataset.preset];
-          if (!p) return;
-          document.querySelectorAll('.preset-btn').forEach((b) => b.classList.remove('active'));
-          btn.classList.add('active');
-          el.currentMarketLabel.textContent = p.market;
-          state.title = p.title;
-          state.mainValue = p.mainValue;
-          state.pct = p.pct;
-          state.pts = p.pts;
-          state.subtitle = p.subtitle;
-          state.colorMode = p.colorMode;
-
-          el.titleInput.value = p.title;
-          el.mainValueInput.value = p.mainValue;
-          el.pctInput.value = p.pct;
-          el.ptsInput.value = p.pts;
-          el.subtitleInput.value = p.subtitle;
-          updateColorModeUI();
-          renderCard();
-          setMenuOpen(false);
-        });
-      });
-
       function isMobileOrTablet() {
         const ua = navigator.userAgent || '';
         const isTouchMac = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
@@ -1522,8 +2136,16 @@
       }
 
       function getExportFilename() {
-        const safeTitle = (state.title || 'index-card').replace(/[\\/:*?"<>|]/g, '');
         const safeDate = (state.date || getTodayYYYYMMDD()).replace(/[\\/:*?"<>|]/g, '');
+        if (state.mode === 'thumb') {
+          const firstLine = (state.thumbMain || 'thumbnail')
+            .split(/\r?\n/)
+            .map((s) => s.trim())
+            .find(Boolean) || 'thumbnail';
+          const safeHead = firstLine.replace(/[\\/:*?"<>|]/g, '').slice(0, 20);
+          return `${safeDate}_縮圖_${safeHead}.png`;
+        }
+        const safeTitle = (state.title || 'index-card').replace(/[\\/:*?"<>|]/g, '');
         return `${safeDate}_${safeTitle}_${state.mainValue || 'card'}.png`;
       }
 
@@ -1563,7 +2185,6 @@
               return;
             } catch (err) {
               if (err && err.name === 'AbortError') return;
-              // Fallback to direct download if share is unsupported in this browser/context
             }
           }
         }
@@ -1580,8 +2201,9 @@
         canvas.toBlob(async (blob) => {
           if (!blob) return;
           try {
+            const { w, h } = getCanvasSize();
             await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-            showToast('已複製 1080×1350 圖卡到剪貼簿');
+            showToast(`已複製 ${w}×${h} 圖卡到剪貼簿`);
           } catch (err) {
             showToast(IS_MOBILE_OR_TABLET ? '請改點「分享PNG」儲存圖片' : '複製失敗，請改用下載PNG');
           }
@@ -1616,10 +2238,14 @@
         renderCard();
       }
 
+      updateDirectionUI();
       updateColorModeUI();
       renderCard();
       loadSavedFontsFromDB();
       preloadServerFonts();
+      if (state.sheetCsvUrl) {
+        fetchSheetCSV(state.sheetCsvUrl, true);
+      }
       if (document.fonts && document.fonts.ready) {
         document.fonts.ready.then(renderCard);
       }
