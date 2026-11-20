@@ -1,0 +1,847 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>專屬新聞圖庫</title>
+  <meta name="description" content="快速瀏覽、搜尋並複製專屬新聞圖庫圖片連結。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #fafafa;
+      --panel: #ffffff;
+      --surface: #f4f4f5;
+      --border: #e4e4e7;
+      --border-strong: #d4d4d8;
+      --text: #18181b;
+      --muted: #71717a;
+      --accent-red: #e3433d;
+      --accent-green: #059669;
+      --primary: #18181b;
+      --primary-text: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
+    body {
+      font-family: "Plus Jakarta Sans", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Shared Topbar & Navigation Menu */
+    .topbar {
+      height: 58px;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      background: var(--panel);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      color: var(--text);
+    }
+
+    .nav-menu {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
+
+    .nav-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 14px;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      white-space: nowrap;
+      transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+    }
+
+    .nav-link:hover {
+      color: var(--text);
+    }
+
+    .nav-link.active {
+      background: #ffffff;
+      color: var(--text);
+      font-weight: 600;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Main Container */
+    .page-wrap {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 24px 20px 56px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Toolbar Panel */
+    .toolbar-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+
+    .toolbar-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .toolbar-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    .toolbar-count {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .toolbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      max-width: 440px;
+      min-width: 240px;
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 15px;
+      height: 15px;
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    .input {
+      width: 100%;
+      background: var(--panel);
+      border: 1px solid var(--border-strong);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 9px 34px 9px 36px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .input::placeholder {
+      color: #a1a1aa;
+    }
+
+    .input:focus {
+      border-color: var(--text);
+      box-shadow: 0 0 0 3px rgba(24, 24, 27, 0.08);
+    }
+
+    .search-clear {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .search-clear.visible {
+      display: inline-flex;
+    }
+
+    .search-clear:hover {
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid var(--border-strong);
+      background: var(--panel);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 9px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      white-space: nowrap;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      transition: background 0.15s, border-color 0.15s, transform 0.08s;
+    }
+
+    .btn:hover {
+      background: var(--surface);
+      border-color: #a1a1aa;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: var(--primary-text);
+      border-color: transparent;
+    }
+
+    .btn-primary:hover {
+      background: #3f3f46;
+      border-color: transparent;
+    }
+
+    .btn-copied {
+      background: var(--accent-green);
+      color: #ffffff;
+      border-color: transparent;
+    }
+
+    .btn-copied:hover {
+      background: #047857;
+      border-color: transparent;
+    }
+
+    /* Status Box */
+    .status-box {
+      background: var(--panel);
+      border: 1px dashed var(--border-strong);
+      border-radius: 14px;
+      padding: 48px 20px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .status-box.error {
+      color: #dc2626;
+      border-color: rgba(220, 38, 38, 0.35);
+      background: #fef2f2;
+    }
+
+    /* Gallery Grid */
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .img-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .img-card:hover {
+      border-color: var(--border-strong);
+      box-shadow: 0 8px 20px rgba(24, 24, 27, 0.07);
+    }
+
+    .thumb-wrap {
+      aspect-ratio: 16 / 10;
+      background: var(--surface);
+      overflow: hidden;
+      position: relative;
+      cursor: zoom-in;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .thumb-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.3s ease;
+    }
+
+    .img-card:hover .thumb-wrap img {
+      transform: scale(1.04);
+    }
+
+    .card-body {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+      justify-content: space-between;
+    }
+
+    .file-name {
+      font-size: 12px;
+      font-weight: 500;
+      color: #52525b;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-body .btn {
+      width: 100%;
+      padding: 8px 12px;
+      font-size: 12px;
+      border-radius: 8px;
+    }
+
+    /* Lightbox Modal */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(24, 24, 27, 0.62);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 80;
+    }
+
+    .lightbox.open {
+      display: flex;
+    }
+
+    .lightbox-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      max-width: min(92vw, 900px);
+      max-height: 90vh;
+      width: 100%;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 72px rgba(24, 24, 27, 0.28);
+    }
+
+    .lightbox-head {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .lightbox-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .lightbox-close {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .lightbox-close:hover {
+      background: #e4e4e7;
+    }
+
+    .lightbox-stage {
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow: auto;
+      min-height: 220px;
+    }
+
+    .lightbox-stage img {
+      max-width: 100%;
+      max-height: 68vh;
+      object-fit: contain;
+      border-radius: 8px;
+      display: block;
+    }
+
+    .lightbox-foot {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 22px;
+      left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: #18181b;
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, transform 0.2s;
+      z-index: 100;
+      box-shadow: 0 12px 30px rgba(24, 24, 27, 0.25);
+      max-width: calc(100vw - 32px);
+      text-align: center;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .gallery {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      .topbar {
+        padding: 0 14px;
+      }
+
+      .page-wrap {
+        padding: 14px 14px 40px;
+        gap: 14px;
+      }
+
+      .toolbar-panel {
+        padding: 14px;
+      }
+
+      .toolbar-actions {
+        max-width: none;
+        width: 100%;
+      }
+
+      .input {
+        font-size: 16px;
+      }
+
+      .gallery {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+    }
+
+    @media (max-width: 540px) {
+      .brand {
+        font-size: 14px;
+      }
+
+      .nav-link {
+        padding: 5px 10px;
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-group">
+      <div class="brand">專屬新聞圖庫</div>
+    </div>
+    <nav class="nav-menu" aria-label="頁面切換">
+      <a href="./indexes.html" class="nav-link">圖卡產生器</a>
+      <a href="./image.html" class="nav-link active" aria-current="page">新聞圖庫</a>
+    </nav>
+  </header>
+
+  <main class="page-wrap">
+    <section class="toolbar-panel">
+      <div class="toolbar-info">
+        <div class="toolbar-title">圖片素材管理</div>
+        <div class="toolbar-count" id="count">讀取中...</div>
+      </div>
+      <div class="toolbar-actions">
+        <div class="search-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input
+            id="searchInput"
+            class="input"
+            type="text"
+            placeholder="搜尋檔名關鍵字..."
+            autocomplete="off"
+          />
+          <button type="button" class="search-clear" id="btnClearSearch" aria-label="清除搜尋">&times;</button>
+        </div>
+        <button type="button" class="btn" id="btnRefresh">重新整理</button>
+      </div>
+    </section>
+
+    <div id="status" class="status-box">載入圖片中...</div>
+    <section id="gallery" class="gallery" aria-label="圖片列表"></section>
+  </main>
+
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="圖片預覽">
+    <div class="lightbox-panel">
+      <div class="lightbox-head">
+        <div class="lightbox-title" id="lightboxTitle"></div>
+        <button type="button" class="lightbox-close" id="lightboxClose" aria-label="關閉預覽">&times;</button>
+      </div>
+      <div class="lightbox-stage">
+        <img id="lightboxImg" src="" alt="" />
+      </div>
+      <div class="lightbox-foot">
+        <button type="button" class="btn btn-primary" id="lightboxCopyBtn">複製圖片連結</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    (function () {
+      const USERNAME = 'rockchang1221';
+      const REPO_NAME = 'tools';
+      const FOLDER = 'image/images';
+
+      const el = {
+        count: document.getElementById('count'),
+        status: document.getElementById('status'),
+        gallery: document.getElementById('gallery'),
+        searchInput: document.getElementById('searchInput'),
+        btnClearSearch: document.getElementById('btnClearSearch'),
+        btnRefresh: document.getElementById('btnRefresh'),
+        lightbox: document.getElementById('lightbox'),
+        lightboxTitle: document.getElementById('lightboxTitle'),
+        lightboxImg: document.getElementById('lightboxImg'),
+        lightboxClose: document.getElementById('lightboxClose'),
+        lightboxCopyBtn: document.getElementById('lightboxCopyBtn'),
+        toast: document.getElementById('toast')
+      };
+
+      let allImages = [];
+      let activePreviewUrl = '';
+      let toastTimer;
+
+      function showToast(msg) {
+        el.toast.textContent = msg;
+        el.toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.toast.classList.remove('show'), 2400);
+      }
+
+      async function copyText(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          try {
+            await navigator.clipboard.writeText(text);
+            return true;
+          } catch (_) {}
+        }
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          const ok = document.execCommand('copy');
+          document.body.removeChild(ta);
+          return ok;
+        } catch (_) {
+          return false;
+        }
+      }
+
+      function buildPageUrl(fileName) {
+        return new URL(`images/${encodeURIComponent(fileName)}`, window.location.href).href;
+      }
+
+      function openLightbox(file, displaySrc, pageUrl) {
+        activePreviewUrl = pageUrl;
+        el.lightboxTitle.textContent = file.name;
+        el.lightboxImg.src = displaySrc;
+        el.lightboxImg.alt = file.name;
+        el.lightboxCopyBtn.textContent = '複製圖片連結';
+        el.lightboxCopyBtn.classList.remove('btn-copied');
+        el.lightboxCopyBtn.classList.add('btn-primary');
+        el.lightbox.classList.add('open');
+      }
+
+      function closeLightbox() {
+        el.lightbox.classList.remove('open');
+        el.lightboxImg.src = '';
+      }
+
+      function setStatus(message, isError) {
+        el.status.textContent = message;
+        el.status.classList.toggle('error', !!isError);
+        el.status.style.display = 'block';
+      }
+
+      function renderGallery(images, isFiltered) {
+        el.gallery.innerHTML = '';
+
+        if (images.length === 0) {
+          setStatus(isFiltered ? '找不到符合關鍵字的圖片' : '資料夾裡還沒有圖片，快上傳幾張吧！', false);
+          return;
+        }
+
+        el.status.style.display = 'none';
+
+        images.forEach((file) => {
+          const pageUrl = buildPageUrl(file.name);
+          const fallbackUrl = file.download_url || pageUrl;
+
+          const card = document.createElement('article');
+          card.className = 'img-card';
+
+          const thumbWrap = document.createElement('div');
+          thumbWrap.className = 'thumb-wrap';
+          thumbWrap.title = '點擊放大預覽';
+
+          const img = document.createElement('img');
+          img.src = pageUrl;
+          img.alt = file.name;
+          img.loading = 'lazy';
+          img.onerror = () => {
+            if (img.src !== fallbackUrl) {
+              img.src = fallbackUrl;
+            }
+          };
+
+          thumbWrap.appendChild(img);
+          thumbWrap.addEventListener('click', () => {
+            openLightbox(file, img.currentSrc || img.src, pageUrl);
+          });
+
+          const body = document.createElement('div');
+          body.className = 'card-body';
+
+          const nameEl = document.createElement('p');
+          nameEl.className = 'file-name';
+          nameEl.title = file.name;
+          nameEl.textContent = file.name;
+
+          const copyBtn = document.createElement('button');
+          copyBtn.type = 'button';
+          copyBtn.className = 'btn btn-primary';
+          copyBtn.textContent = '複製連結';
+          copyBtn.addEventListener('click', async () => {
+            const ok = await copyText(pageUrl);
+            if (!ok) {
+              showToast('複製失敗，請手動複製網址');
+              return;
+            }
+            copyBtn.textContent = '已複製 ✓';
+            copyBtn.classList.remove('btn-primary');
+            copyBtn.classList.add('btn-copied');
+            showToast(`已複製連結：${file.name}`);
+            setTimeout(() => {
+              copyBtn.textContent = '複製連結';
+              copyBtn.classList.remove('btn-copied');
+              copyBtn.classList.add('btn-primary');
+            }, 1400);
+          });
+
+          body.appendChild(nameEl);
+          body.appendChild(copyBtn);
+          card.appendChild(thumbWrap);
+          card.appendChild(body);
+          el.gallery.appendChild(card);
+        });
+      }
+
+      function applySearch() {
+        const keyword = el.searchInput.value.trim().toLowerCase();
+        el.btnClearSearch.classList.toggle('visible', keyword.length > 0);
+        const filtered = keyword
+          ? allImages.filter((f) => f.name.toLowerCase().includes(keyword))
+          : allImages;
+
+        if (allImages.length > 0) {
+          el.count.textContent = keyword
+            ? `顯示 ${filtered.length} / 共 ${allImages.length} 張圖片`
+            : `共 ${allImages.length} 張圖片`;
+        }
+        renderGallery(filtered, keyword.length > 0);
+      }
+
+      async function loadImages(showSuccessToast) {
+        el.btnRefresh.disabled = true;
+        el.btnRefresh.textContent = '載入中…';
+        el.count.textContent = '讀取中...';
+        if (allImages.length === 0) {
+          setStatus('載入圖片中...', false);
+        }
+
+        try {
+          const res = await fetch(
+            `https://api.github.com/repos/${USERNAME}/${REPO_NAME}/contents/${FOLDER}?_t=${Date.now()}`,
+            { cache: 'no-store' }
+          );
+          if (!res.ok) {
+            throw new Error('讀取失敗，請確認專案為 Public 且資料夾路徑正確');
+          }
+          const files = await res.json();
+          allImages = Array.isArray(files)
+            ? files.filter((f) => /\.(jpg|jpeg|png|webp|gif)$/i.test(f.name))
+            : [];
+
+          el.count.textContent = `共 ${allImages.length} 張圖片`;
+          applySearch();
+
+          if (showSuccessToast) {
+            showToast(`已更新圖庫，共 ${allImages.length} 張圖片`);
+          }
+        } catch (err) {
+          el.count.textContent = '載入失敗';
+          setStatus(err && err.message ? err.message : '無法連線至 GitHub 圖庫', true);
+          if (showSuccessToast) {
+            showToast('重新整理失敗');
+          }
+        } finally {
+          el.btnRefresh.disabled = false;
+          el.btnRefresh.textContent = '重新整理';
+        }
+      }
+
+      el.searchInput.addEventListener('input', applySearch);
+      el.btnClearSearch.addEventListener('click', () => {
+        el.searchInput.value = '';
+        applySearch();
+        el.searchInput.focus();
+      });
+      el.btnRefresh.addEventListener('click', () => loadImages(true));
+
+      el.lightboxClose.addEventListener('click', closeLightbox);
+      el.lightbox.addEventListener('click', (e) => {
+        if (e.target === el.lightbox) closeLightbox();
+      });
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && el.lightbox.classList.contains('open')) {
+          closeLightbox();
+        }
+      });
+
+      el.lightboxCopyBtn.addEventListener('click', async () => {
+        if (!activePreviewUrl) return;
+        const ok = await copyText(activePreviewUrl);
+        if (!ok) {
+          showToast('複製失敗');
+          return;
+        }
+        el.lightboxCopyBtn.textContent = '已複製 ✓';
+        el.lightboxCopyBtn.classList.remove('btn-primary');
+        el.lightboxCopyBtn.classList.add('btn-copied');
+        showToast('已複製圖片連結');
+        setTimeout(() => {
+          el.lightboxCopyBtn.textContent = '複製圖片連結';
+          el.lightboxCopyBtn.classList.remove('btn-copied');
+          el.lightboxCopyBtn.classList.add('btn-primary');
+        }, 1400);
+      });
+
+      loadImages(false);
+    })();
+  </script>
+</body>
+</html>
