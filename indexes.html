@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>收盤指數圖卡產生器</title>
+  <title>圖卡產生器</title>
   <meta name="description" content="快速製作 1080×1350 股市收盤指數圖卡工具，支援背景照片上傳與匯出高解析 PNG。" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -668,7 +668,7 @@
   </style>
 </head>
 <body>
-  <div id="site-header" data-brand="收盤指數圖卡產生器"></div>
+  <div id="site-header" data-brand="圖卡產生器"></div>
   <script>
     (function () {
       const mount = document.getElementById('site-header');
@@ -687,6 +687,11 @@
               link.classList.add('active');
               link.setAttribute('aria-current', 'page');
             }
+          });
+          mount.querySelectorAll('script').forEach((oldScript) => {
+            const s = document.createElement('script');
+            s.textContent = oldScript.textContent;
+            oldScript.replaceWith(s);
           });
         })
         .catch(() => {});
