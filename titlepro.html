@@ -1,0 +1,3580 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>專業綜藝字卡產生器 Pro Max (TitlePro)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #121214;
+            color: #f2f2f7;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang TC", "Helvetica Neue", Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #38383a; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #545458; }
+
+        .checkerboard {
+            background-color: #2c2c30;
+            background-image: linear-gradient(45deg, #3c3c42 25%, transparent 25%, transparent 75%, #3c3c42 75%, #3c3c42),
+                              linear-gradient(45deg, #3c3c42 25%, transparent 25%, transparent 75%, #3c3c42 75%, #3c3c42);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+        }
+
+        .checkerboard-light {
+            background-color: #d8d8de;
+            background-image: linear-gradient(45deg, #ebebf0 25%, transparent 25%, transparent 75%, #ebebf0 75%, #ebebf0),
+                              linear-gradient(45deg, #ebebf0 25%, transparent 25%, transparent 75%, #ebebf0 75%, #ebebf0);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+        }
+
+        .bg-solid-dark {
+            background-color: #121214 !important;
+            background-image: none !important;
+        }
+
+        .bg-solid-white {
+            background-color: #ffffff !important;
+            background-image: none !important;
+        }
+
+        input[type=range] {
+            accent-color: #0a84ff;
+            height: 4px;
+            border-radius: 9999px;
+            background-color: #2c2c2e;
+            outline: none;
+        }
+
+        input[type=color] {
+            cursor: pointer;
+            border: 1px solid #38383a;
+            padding: 0;
+            border-radius: 8px;
+            overflow: hidden;
+            width: 30px;
+            height: 30px;
+            background: #1c1c1e;
+            transition: border-color 0.15s, transform 0.1s;
+        }
+        input[type=color]:hover {
+            border-color: #0a84ff;
+            transform: scale(1.02);
+        }
+        input[type=color]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type=color]::-webkit-color-swatch { border: none; border-radius: 7px; }
+
+        /* 統一 HEX + 吸管選色器 */
+        .hex-color-control {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            height: 34px;
+            padding: 3px 4px;
+            border-radius: 10px;
+            background-color: #1c1c1f;
+            border: 1px solid #2e2e34;
+            transition: border-color 0.15s ease, background-color 0.15s ease;
+            width: 100%;
+            min-width: 0;
+        }
+        .hex-color-control.surface-dark {
+            background-color: #161618;
+        }
+        .hex-color-control:hover {
+            border-color: #45454e;
+        }
+        .hex-color-control:focus-within,
+        .hex-color-control.picker-open {
+            border-color: #0a84ff;
+            background-color: #222226;
+        }
+        .hex-swatch-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: transform 0.1s ease, border-color 0.15s ease;
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+        }
+        .hex-swatch-btn:hover {
+            transform: scale(1.05);
+            border-color: rgba(255, 255, 255, 0.45);
+        }
+        .hex-text-input {
+            flex: 1;
+            min-width: 0;
+            width: 0;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #f2f2f7;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            padding: 0 2px;
+        }
+        .hex-text-input::selection {
+            background: rgba(10, 132, 255, 0.45);
+            color: #ffffff;
+        }
+        .hex-eyedropper-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #8e8e93;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: color 0.15s ease, background-color 0.15s ease;
+        }
+        .hex-eyedropper-btn:hover {
+            color: #ffffff;
+            background-color: #2c2c34;
+        }
+        .hex-eyedropper-btn.sampling {
+            color: #0a84ff;
+            background-color: rgba(10, 132, 255, 0.2);
+        }
+
+        /* HEX 浮動選色盤 */
+        .hex-sv-wrap {
+            position: relative;
+            width: 224px;
+            height: 148px;
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: crosshair;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            touch-action: none;
+            user-select: none;
+        }
+        .hex-sv-cursor {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border-radius: 9999px;
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 0 1.5px rgba(0, 0, 0, 0.75), 0 2px 6px rgba(0, 0, 0, 0.5);
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        .hex-hue-bar {
+            position: relative;
+            width: 224px;
+            height: 14px;
+            border-radius: 9999px;
+            background: linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%);
+            cursor: ew-resize;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            touch-action: none;
+            user-select: none;
+        }
+        .hex-hue-cursor {
+            position: absolute;
+            top: 50%;
+            width: 16px;
+            height: 16px;
+            border-radius: 9999px;
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.65), 0 2px 6px rgba(0, 0, 0, 0.45);
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        body.eyedropper-mode,
+        body.eyedropper-mode #canvas,
+        body.eyedropper-mode #previewCanvasContainer,
+        body.eyedropper-mode #refContainer,
+        body.eyedropper-mode #refImage {
+            cursor: crosshair !important;
+        }
+        #eyedropperLoupeCanvas {
+            image-rendering: pixelated;
+        }
+
+        /* 預設樣式庫拖曳排序樣式 */
+        .preset-tile {
+            user-select: none;
+            -webkit-user-drag: element;
+        }
+        .preset-tile.preset-dragging {
+            opacity: 0.35;
+            transform: scale(0.94);
+            border-style: dashed;
+            border-color: #0a84ff;
+        }
+        .preset-tile.preset-drop-before::before,
+        .preset-tile.preset-drop-after::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            bottom: 2px;
+            width: 3px;
+            border-radius: 9999px;
+            background-color: #0a84ff;
+            box-shadow: 0 0 8px rgba(10, 132, 255, 0.85);
+            z-index: 20;
+            pointer-events: none;
+        }
+        .preset-tile.preset-drop-before::before {
+            left: -5.5px;
+        }
+        .preset-tile.preset-drop-after::after {
+            right: -5.5px;
+        }
+
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+
+        canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .apple-toggle {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .apple-toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+        .apple-toggle-track {
+            width: 40px;
+            height: 24px;
+            background-color: #38383a;
+            border-radius: 9999px;
+            transition: background-color 0.2s ease;
+            position: relative;
+        }
+        .apple-toggle-track::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background-color: #ffffff;
+            border-radius: 9999px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .apple-toggle input:checked + .apple-toggle-track {
+            background-color: #30d158;
+        }
+        .apple-toggle input:checked + .apple-toggle-track::after {
+            transform: translateX(16px);
+        }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden">
+
+    <!-- 左側編輯區：左右 1:1 比例，單一直行流暢排版，以簡約分隔線切換區塊 -->
+    <aside class="w-1/2 shrink-0 flex flex-col h-full overflow-y-auto z-10 bg-[#161618] border-r border-[#3c3c44]">
+        
+        <!-- 頂部列 -->
+        <header class="p-4 px-6 border-b border-[#3c3c44] bg-[#161618]/90 backdrop-blur-md sticky top-0 z-30 flex justify-between items-center">
+            <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 rounded-lg bg-[#242428] border border-[#34343a] text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                    <i class="fa-solid fa-font text-[#0a84ff]"></i>
+                </div>
+                <div>
+                    <h1 class="text-sm font-semibold text-white tracking-tight leading-tight">TitlePro</h1>
+                    <p class="text-[10px] text-[#8e8e93] leading-none">綜藝花字製作工具</p>
+                </div>
+            </div>
+            
+            <div class="flex gap-2 items-center">
+                <button onclick="setCloudUrl()" class="bg-[#242428] hover:bg-[#2c2c30] text-[#c7c7cc] hover:text-white border border-[#38383e] px-3 py-1.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5" title="設定 Google Apps Script 網址">
+                    <i class="fa-solid fa-link text-[10px]"></i> 設定連結
+                </button>
+                <button onclick="downloadFromCloud()" class="bg-[#242428] hover:bg-[#2c2c30] text-[#c7c7cc] hover:text-white border border-[#38383e] px-3 py-1.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-cloud-arrow-down text-[10px]"></i> 下載備份
+                </button>
+                <button onclick="syncToCloud(false)" class="bg-[#242428] hover:bg-[#2c2c30] text-[#c7c7cc] hover:text-white border border-[#38383e] px-3 py-1.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-cloud-arrow-up text-[10px]"></i> 手動備份
+                </button>
+                <button onclick="savePreset()" class="bg-[#0a84ff] hover:bg-[#0071e3] text-white px-4 py-1.5 rounded-full text-xs font-medium shadow-sm transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-bookmark text-[10px]"></i> 儲存樣式
+                </button>
+            </div>
+        </header>
+
+        <!-- 垂直線性區塊 (無卡片外框，清晰分隔線排列) -->
+        <div class="divide-y divide-[#45454e] pb-24">
+            
+            <!-- 區塊 1: 預設樣式庫 -->
+            <section class="p-6 space-y-3">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xs font-medium text-[#8e8e93] uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-bookmark text-[11px] text-[#0a84ff]"></i> 預設樣式庫
+                    </h2>
+                    <span id="presetDragHint" class="hidden text-[11px] text-[#636366]">拖曳縮圖可調整順序</span>
+                </div>
+                <div id="presetsContainer" class="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2 text-xs text-[#8e8e93]">
+                    尚無預設，請調整參數後點擊右上角儲存。
+                </div>
+            </section>
+
+            <!-- 區塊 2: 內容與排版 -->
+            <section class="p-6 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xs font-medium text-[#8e8e93] uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-font text-[11px] text-[#0a84ff]"></i> 內容與排版
+                    </h2>
+                    <div id="charSelectionHint" class="text-xs text-[#8e8e93] flex items-center gap-1.5">
+                        <span>反白選取文字可單獨微調</span>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <textarea id="textInput" rows="2" class="w-full bg-[#1c1c1f] border border-[#2e2e34] focus:border-[#0a84ff] focus:bg-[#222226] rounded-xl p-3 text-white focus:outline-none transition-all resize-y text-base placeholder-[#636366]" placeholder="請輸入內容..."></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-medium text-[#8e8e93] mb-1.5">字體選擇 (支援 TTF / OTF 匯入)</label>
+                        <div class="flex gap-2 relative">
+                            <div id="customFontSelect" class="flex-1 bg-[#1c1c1f] border border-[#2e2e34] hover:border-[#44444a] rounded-xl p-2.5 text-white cursor-pointer relative transition-colors flex justify-between items-center z-30 shadow-sm text-sm">
+                                <span id="currentFontName" class="truncate font-medium">系統預設黑體 (Sans-Serif)</span>
+                                <i class="fa-solid fa-chevron-down text-[#8e8e93] text-xs ml-2"></i>
+                                <div id="fontDropdownPanel" class="absolute top-full left-0 right-0 mt-1.5 bg-[#202024] border border-[#34343a] rounded-xl shadow-2xl hidden flex-col max-h-60 overflow-y-auto z-50 py-1.5">
+                                    <!-- 字體列表透過 JS 動態注入 -->
+                                </div>
+                            </div>
+                            <label class="bg-[#242428] hover:bg-[#2c2c30] border border-[#38383e] rounded-xl px-3.5 py-2 cursor-pointer transition-colors text-xs font-medium text-white flex items-center shadow-sm">
+                                <i class="fa-solid fa-plus mr-1.5 text-xs text-[#8e8e93]"></i> 匯入
+                                <input type="file" id="fontUpload" accept=".ttf, .otf" class="hidden">
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <div class="flex-1">
+                            <label class="block text-xs font-medium text-[#8e8e93] mb-1.5">字重</label>
+                            <select id="fontWeight" class="w-full bg-[#1c1c1f] border border-[#2e2e34] rounded-xl p-2.5 text-white text-sm outline-none cursor-pointer">
+                                <option value="normal">正常 (Regular)</option>
+                                <option value="bold">粗體 (Bold)</option>
+                                <option value="900">極粗 (Heavy / 900)</option>
+                            </select>
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-xs font-medium text-[#8e8e93] mb-1.5">對齊方式</label>
+                            <div class="flex gap-1 h-[38px] bg-[#1c1c1f] p-1 rounded-xl border border-[#2e2e34]">
+                                <label class="flex-1 text-center py-1.5 rounded-lg cursor-pointer hover:text-white has-[:checked]:bg-[#2c2c32] has-[:checked]:text-white has-[:checked]:shadow text-[#8e8e93] transition-all text-xs flex items-center justify-center font-medium">
+                                    <input type="radio" name="textAlign" value="left" class="hidden">
+                                    <i class="fa-solid fa-align-left"></i>
+                                </label>
+                                <label class="flex-1 text-center py-1.5 rounded-lg cursor-pointer hover:text-white has-[:checked]:bg-[#2c2c32] has-[:checked]:text-white has-[:checked]:shadow text-[#8e8e93] transition-all text-xs flex items-center justify-center font-medium">
+                                    <input type="radio" name="textAlign" value="center" class="hidden" checked>
+                                    <i class="fa-solid fa-align-center"></i>
+                                </label>
+                                <label class="flex-1 text-center py-1.5 rounded-lg cursor-pointer hover:text-white has-[:checked]:bg-[#2c2c32] has-[:checked]:text-white has-[:checked]:shadow text-[#8e8e93] transition-all text-xs flex items-center justify-center font-medium">
+                                    <input type="radio" name="textAlign" value="right" class="hidden">
+                                    <i class="fa-solid fa-align-right"></i>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-4">
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-medium text-[#8e8e93]">字體大小</label>
+                                <div class="flex items-center gap-1">
+                                    <input type="number" id="fontSizeNum" class="w-16 bg-[#1c1c1f] border border-[#2e2e34] focus:border-[#0a84ff] focus:bg-[#222226] rounded-lg px-1.5 py-0.5 text-right text-xs text-white font-mono outline-none">
+                                    <span class="text-[10px] text-[#636366]">px</span>
+                                </div>
+                            </div>
+                            <input type="range" id="fontSize" min="50" max="500" class="w-full">
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-medium text-[#8e8e93]">字距 Tracking</label>
+                                <div class="flex items-center gap-1">
+                                    <input type="number" id="letterSpacingNum" class="w-14 bg-[#1c1c1f] border border-[#2e2e34] focus:border-[#0a84ff] focus:bg-[#222226] rounded-lg px-1.5 py-0.5 text-right text-xs text-white font-mono outline-none">
+                                    <span class="text-[10px] text-[#636366]">px</span>
+                                </div>
+                            </div>
+                            <input type="range" id="letterSpacing" min="-50" max="100" class="w-full">
+                        </div>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-medium text-[#8e8e93]">行距 Line Spacing</label>
+                                <div class="flex items-center gap-1">
+                                    <input type="number" id="lineSpacingNum" class="w-14 bg-[#1c1c1f] border border-[#2e2e34] focus:border-[#0a84ff] focus:bg-[#222226] rounded-lg px-1.5 py-0.5 text-right text-xs text-white font-mono outline-none">
+                                    <span class="text-[10px] text-[#636366]">px</span>
+                                </div>
+                            </div>
+                            <input type="range" id="lineSpacing" min="-50" max="150" class="w-full">
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-medium text-[#8e8e93] flex items-center gap-1.5">
+                                    <span>上下微調</span>
+                                    <span class="text-[10px] text-[#0a84ff] font-mono">(+上 -下)</span>
+                                </label>
+                                <div class="flex items-center gap-1">
+                                    <input type="number" id="charOffsetYNum" min="-150" max="150" step="0.5" value="0" class="w-14 bg-[#1c1c1f] border border-[#2e2e34] focus:border-[#0a84ff] focus:bg-[#222226] rounded-lg px-1 text-right text-xs text-white font-mono outline-none">
+                                    <span class="text-[10px] text-[#636366]">px</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <button type="button" onclick="nudgeCharOffsetY(-1)" class="w-6 h-6 rounded bg-[#242428] hover:bg-[#2e2e34] text-[#8e8e93] hover:text-white flex items-center justify-center text-xs transition-colors shrink-0" title="微調往下 1px">
+                                    <i class="fa-solid fa-arrow-down text-[9px]"></i>
+                                </button>
+                                <input type="range" id="charOffsetY" min="-100" max="100" step="0.5" value="0" class="w-full">
+                                <button type="button" onclick="nudgeCharOffsetY(1)" class="w-6 h-6 rounded bg-[#242428] hover:bg-[#2e2e34] text-[#8e8e93] hover:text-white flex items-center justify-center text-xs transition-colors shrink-0" title="微調往上 1px">
+                                    <i class="fa-solid fa-arrow-up text-[9px]"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 區塊 3: 姿態變形 (改為上下垂直排列，不再左右並排) -->
+            <section class="p-6 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xs font-medium text-[#8e8e93] uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-up-right-and-down-left-from-center text-[11px] text-[#0a84ff]"></i> 姿態變形
+                    </h2>
+                </div>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-medium text-[#8e8e93]">水平縮放 Scale X</label>
+                                <input type="number" id="scaleXNum" step="0.05" class="w-14 bg-[#1c1c1f] border border-[#2e2e34] focus:border-[#0a84ff] focus:bg-[#222226] rounded-lg px-1.5 py-0.5 text-right text-xs text-white font-mono outline-none">
+                            </div>
+                            <input type="range" id="scaleX" min="0.3" max="2.0" step="0.05" class="w-full">
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-medium text-[#8e8e93]">垂直縮放 Scale Y</label>
+                                <input type="number" id="scaleYNum" step="0.05" class="w-14 bg-[#1c1c1f] border border-[#2e2e34] focus:border-[#0a84ff] focus:bg-[#222226] rounded-lg px-1.5 py-0.5 text-right text-xs text-white font-mono outline-none">
+                            </div>
+                            <input type="range" id="scaleY" min="0.3" max="2.0" step="0.05" class="w-full">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-medium text-[#8e8e93]">水平傾斜 Skew X</label>
+                                <div class="flex items-center gap-1">
+                                    <input type="number" id="skewXNum" class="w-14 bg-[#1c1c1f] border border-[#2e2e34] focus:border-[#0a84ff] focus:bg-[#222226] rounded-lg px-1.5 py-0.5 text-right text-xs text-white font-mono outline-none">
+                                    <span class="text-[10px] text-[#636366]">°</span>
+                                </div>
+                            </div>
+                            <input type="range" id="skewX" min="-60" max="60" class="w-full">
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-medium text-[#8e8e93]">垂直傾斜 Skew Y</label>
+                                <div class="flex items-center gap-1">
+                                    <input type="number" id="skewYNum" class="w-14 bg-[#1c1c1f] border border-[#2e2e34] focus:border-[#0a84ff] focus:bg-[#222226] rounded-lg px-1.5 py-0.5 text-right text-xs text-white font-mono outline-none">
+                                    <span class="text-[10px] text-[#636366]">°</span>
+                                </div>
+                            </div>
+                            <input type="range" id="skewY" min="-60" max="60" class="w-full">
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-medium text-[#8e8e93]">整體旋轉 Rotate</label>
+                            <div class="flex items-center gap-1">
+                                <input type="number" id="rotateNum" class="w-14 bg-[#1c1c1f] border border-[#2e2e34] focus:border-[#0a84ff] focus:bg-[#222226] rounded-lg px-1.5 py-0.5 text-right text-xs text-white font-mono outline-none">
+                                <span class="text-[10px] text-[#636366]">°</span>
+                            </div>
+                        </div>
+                        <input type="range" id="rotate" min="-180" max="180" class="w-full">
+                    </div>
+                </div>
+            </section>
+
+            <!-- 區塊 4: 表面填色 -->
+            <section class="p-6 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xs font-medium text-[#8e8e93] uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-palette text-[11px] text-[#0a84ff]"></i> 表面填色
+                        <span id="fillSelectionBadge" class="hidden text-[10px] font-medium normal-case tracking-normal px-2 py-0.5 rounded-full bg-[#0a84ff]/20 text-[#0a84ff] border border-[#0a84ff]/30"></span>
+                    </h2>
+                    <div class="flex items-center bg-[#1c1c1f] p-1 rounded-xl border border-[#2e2e34] text-xs">
+                        <label class="px-2.5 py-1 rounded-lg cursor-pointer transition-all has-[:checked]:bg-[#2c2c32] has-[:checked]:text-white has-[:checked]:shadow text-[#8e8e93] font-medium">
+                            <input type="radio" name="fillType" value="solid" class="hidden"> 純色
+                        </label>
+                        <label class="px-2.5 py-1 rounded-lg cursor-pointer transition-all has-[:checked]:bg-[#2c2c32] has-[:checked]:text-white has-[:checked]:shadow text-[#8e8e93] font-medium">
+                            <input type="radio" name="fillType" value="gradient" class="hidden"> 三色漸層
+                        </label>
+                        <label class="px-2.5 py-1 rounded-lg cursor-pointer transition-all has-[:checked]:bg-[#2c2c32] has-[:checked]:text-white has-[:checked]:shadow text-[#8e8e93] font-medium">
+                            <input type="radio" name="fillType" value="gradient5" class="hidden"> 五色漸層
+                        </label>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="flex flex-wrap gap-2.5">
+                        <div class="flex-1 min-w-[138px]">
+                            <label id="lblColor1" class="block text-[11px] font-medium text-[#8e8e93] mb-1">起點色 (Color 1)</label>
+                            <input type="color" id="color1" class="w-full h-8">
+                        </div>
+                        <div class="flex-1 min-w-[138px] grad-only">
+                            <label class="block text-[11px] font-medium text-[#8e8e93] mb-1">Color 2</label>
+                            <input type="color" id="colorMid" class="w-full h-8">
+                        </div>
+                        <div class="flex-1 min-w-[138px] grad5-only hidden">
+                            <label class="block text-[11px] font-medium text-[#8e8e93] mb-1">Color 3</label>
+                            <input type="color" id="color3" class="w-full h-8">
+                        </div>
+                        <div class="flex-1 min-w-[138px] grad5-only hidden">
+                            <label class="block text-[11px] font-medium text-[#8e8e93] mb-1">Color 4</label>
+                            <input type="color" id="color4" class="w-full h-8">
+                        </div>
+                        <div class="flex-1 min-w-[138px] grad-only">
+                            <label id="lblColor2" class="block text-[11px] font-medium text-[#8e8e93] mb-1">終點色 (Color 3)</label>
+                            <input type="color" id="color2" class="w-full h-8">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 grad-only">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-medium text-[#8e8e93]">第一切割點</label>
+                                <div class="flex items-center gap-1">
+                                    <input type="number" id="gradPos1Num" class="w-12 bg-[#1c1c1f] border border-[#2e2e34] focus:border-[#0a84ff] focus:bg-[#222226] rounded-lg px-1 text-right text-xs text-white font-mono outline-none">
+                                    <span class="text-[10px] text-[#636366]">%</span>
+                                </div>
+                            </div>
+                            <input type="range" id="gradPos1" min="0" max="100" class="w-full">
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-medium text-[#8e8e93]">第二切割點</label>
+                                <div class="flex items-center gap-1">
+                                    <input type="number" id="gradPos2Num" class="w-12 bg-[#1c1c1f] border border-[#2e2e34] focus:border-[#0a84ff] focus:bg-[#222226] rounded-lg px-1 text-right text-xs text-white font-mono outline-none">
+                                    <span class="text-[10px] text-[#636366]">%</span>
+                                </div>
+                            </div>
+                            <input type="range" id="gradPos2" min="0" max="100" class="w-full">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 grad5-only hidden mt-2">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-medium text-[#8e8e93]">第三切割點</label>
+                                <div class="flex items-center gap-1">
+                                    <input type="number" id="gradPos3Num" class="w-12 bg-[#1c1c1f] border border-[#2e2e34] focus:border-[#0a84ff] focus:bg-[#222226] rounded-lg px-1 text-right text-xs text-white font-mono outline-none">
+                                    <span class="text-[10px] text-[#636366]">%</span>
+                                </div>
+                            </div>
+                            <input type="range" id="gradPos3" min="0" max="100" class="w-full">
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-medium text-[#8e8e93]">第四切割點</label>
+                                <div class="flex items-center gap-1">
+                                    <input type="number" id="gradPos4Num" class="w-12 bg-[#1c1c1f] border border-[#2e2e34] focus:border-[#0a84ff] focus:bg-[#222226] rounded-lg px-1 text-right text-xs text-white font-mono outline-none">
+                                    <span class="text-[10px] text-[#636366]">%</span>
+                                </div>
+                            </div>
+                            <input type="range" id="gradPos4" min="0" max="100" class="w-full">
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4 border-t border-[#383840] pt-3 mt-1 grad-only">
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-medium text-[#8e8e93]">漸層角度</label>
+                                <div class="flex items-center gap-1">
+                                    <input type="number" id="angleNum" class="w-12 bg-[#1c1c1f] border border-[#2e2e34] focus:border-[#0a84ff] focus:bg-[#222226] rounded-lg px-1 text-right text-xs text-white font-mono outline-none">
+                                    <span class="text-[10px] text-[#636366]">°</span>
+                                </div>
+                            </div>
+                            <input type="range" id="angle" min="0" max="360" class="w-full">
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-medium text-[#8e8e93]">平滑度 / 跨距</label>
+                                <div class="flex items-center gap-1">
+                                    <input type="number" id="smoothnessNum" class="w-12 bg-[#1c1c1f] border border-[#2e2e34] focus:border-[#0a84ff] focus:bg-[#222226] rounded-lg px-1 text-right text-xs text-white font-mono outline-none">
+                                    <span class="text-[10px] text-[#636366]">%</span>
+                                </div>
+                            </div>
+                            <input type="range" id="smoothness" min="0" max="100" class="w-full" title="設為 0% 即可產生銳利邊緣">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 區塊 5: 文字內陰影 -->
+            <section class="p-6 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xs font-medium text-[#8e8e93] uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-moon text-[11px] text-[#0a84ff]"></i> 文字內陰影
+                    </h2>
+                    <label class="apple-toggle">
+                        <input type="checkbox" id="innerShadowEnabled">
+                        <span class="apple-toggle-track"></span>
+                    </label>
+                </div>
+                <div id="innerShadowControls" class="space-y-4 opacity-30 pointer-events-none transition-opacity">
+                    <div class="flex gap-4 items-center">
+                        <div class="w-[144px] shrink-0">
+                            <label class="block text-[11px] font-medium text-[#8e8e93] mb-1">陰影顏色</label>
+                            <input type="color" id="innerShadowColor" class="w-full h-8">
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-medium text-[#8e8e93]">不透明度 Opacity</label>
+                                <div class="flex items-center gap-1">
+                                    <input type="number" id="innerShadowOpacityNum" class="w-12 bg-[#1c1c1f] border border-[#2e2e34] focus:border-[#0a84ff] focus:bg-[#222226] rounded-lg px-1 text-right text-xs text-white font-mono outline-none">
+                                    <span class="text-[10px] text-[#636366]">%</span>
+                                </div>
+                            </div>
+                            <input type="range" id="innerShadowOpacity" min="0" max="100" class="w-full">
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-medium text-[#8e8e93]">X 軸偏移</label>
+                                <input type="number" id="innerShadowXNum" class="w-12 bg-[#1c1c1f] border border-[#2e2e34] focus:border-[#0a84ff] focus:bg-[#222226] rounded-lg px-1 text-right text-xs text-white font-mono outline-none">
+                            </div>
+                            <input type="range" id="innerShadowX" min="-50" max="50" class="w-full">
+                        </div>
+                        <button type="button" id="innerShadowLinkBtn" onclick="toggleLink('innerShadow')" class="w-7 h-7 mt-4 rounded-lg flex items-center justify-center transition-all border border-[#0a84ff]/40 bg-[#0a84ff]/20 text-[#0a84ff] shrink-0" title="點擊切換 X/Y 軸連結 (目前：已連結)">
+                            <i class="fa-solid fa-link text-xs"></i>
+                        </button>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-medium text-[#8e8e93]">Y 軸偏移</label>
+                                <input type="number" id="innerShadowYNum" class="w-12 bg-[#1c1c1f] border border-[#2e2e34] focus:border-[#0a84ff] focus:bg-[#222226] rounded-lg px-1 text-right text-xs text-white font-mono outline-none">
+                            </div>
+                            <input type="range" id="innerShadowY" min="-50" max="50" class="w-full">
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-medium text-[#8e8e93]">邊緣模糊 Blur</label>
+                            <input type="number" id="innerShadowBlurNum" class="w-12 bg-[#1c1c1f] border border-[#2e2e34] focus:border-[#0a84ff] focus:bg-[#222226] rounded-lg px-1 text-right text-xs text-white font-mono outline-none">
+                        </div>
+                        <input type="range" id="innerShadowBlur" min="0" max="100" class="w-full">
+                    </div>
+                </div>
+            </section>
+
+            <!-- 區塊 6: 外圍光暈 -->
+            <section class="p-6 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xs font-medium text-[#8e8e93] uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-sun text-[11px] text-[#0a84ff]"></i> 外圍光暈
+                    </h2>
+                    <label class="apple-toggle">
+                        <input type="checkbox" id="glowEnabled">
+                        <span class="apple-toggle-track"></span>
+                    </label>
+                </div>
+                <div id="glowControls" class="space-y-4 opacity-30 pointer-events-none transition-opacity">
+                    <div class="flex gap-4 items-center">
+                        <div class="w-[144px] shrink-0">
+                            <label class="block text-[11px] font-medium text-[#8e8e93] mb-1">光暈顏色</label>
+                            <input type="color" id="glowColor" class="w-full h-8">
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-medium text-[#8e8e93]">不透明度</label>
+                                <div class="flex items-center gap-1">
+                                    <input type="number" id="glowOpacityNum" class="w-12 bg-[#1c1c1f] border border-[#2e2e34] focus:border-[#0a84ff] focus:bg-[#222226] rounded-lg px-1 text-right text-xs text-white font-mono outline-none">
+                                    <span class="text-[10px] text-[#636366]">%</span>
+                                </div>
+                            </div>
+                            <input type="range" id="glowOpacity" min="0" max="100" class="w-full">
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-medium text-[#8e8e93]">擴散強度</label>
+                                <input type="number" id="glowBlurNum" class="w-14 bg-[#1c1c1f] border border-[#2e2e34] focus:border-[#0a84ff] focus:bg-[#222226] rounded-lg px-1 text-right text-xs text-white font-mono outline-none">
+                            </div>
+                            <input type="range" id="glowBlur" min="0" max="100" class="w-full">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 區塊 7: 多層文字外框 -->
+            <section class="p-6 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xs font-medium text-[#8e8e93] uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-regular fa-square text-[11px] text-[#0a84ff]"></i> 多層文字外框
+                        <span id="strokeSelectionBadge" class="hidden text-[10px] font-medium normal-case tracking-normal px-2 py-0.5 rounded-full bg-[#0a84ff]/20 text-[#0a84ff] border border-[#0a84ff]/30"></span>
+                    </h2>
+                    <button onclick="addStroke()" class="text-xs bg-[#242428] hover:bg-[#2c2c30] text-[#0a84ff] border border-[#38383e] px-3.5 py-1.5 rounded-full font-medium transition-colors flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus text-[10px]"></i> 新增文字外框
+                    </button>
+                </div>
+                <div id="strokeList" class="space-y-2.5"></div>
+            </section>
+
+            <!-- 區塊 8: 空間感 (立體厚度與投影) -->
+            <section class="p-6 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xs font-medium text-[#8e8e93] uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-cubes text-[11px] text-[#0a84ff]"></i> 空間感 (立體厚度與投影)
+                        <span id="spaceSelectionBadge" class="hidden text-[10px] font-medium normal-case tracking-normal px-2 py-0.5 rounded-full bg-[#0a84ff]/20 text-[#0a84ff] border border-[#0a84ff]/30"></span>
+                    </h2>
+                    <label class="apple-toggle">
+                        <input type="checkbox" id="shadowEnabled" checked>
+                        <span class="apple-toggle-track"></span>
+                    </label>
+                </div>
+                <div id="shadowControls" class="space-y-4">
+                    <!-- 立體厚度 -->
+                    <div class="p-4 bg-[#1c1c1f] rounded-xl border border-[#34343c] space-y-3">
+                        <div class="pb-2 border-b border-[#34343c] flex justify-between items-center">
+                            <span class="text-xs font-semibold text-white flex items-center gap-1.5">
+                                <i class="fa-solid fa-cube text-[#8e8e93]"></i> 立體厚度 (Extrusion)
+                            </span>
+                            <label class="flex items-center gap-2 text-xs cursor-pointer hover:text-white transition-colors text-[#8e8e93] font-medium">
+                                <input type="checkbox" id="shadowExtruded" class="w-3.5 h-3.5 accent-[#0a84ff] rounded">
+                                實心連接縫隙
+                            </label>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-[144px] shrink-0">
+                                <label class="block text-xs font-medium text-[#8e8e93] mb-1">厚度顏色</label>
+                                <input type="color" id="shadowColor" data-hex-surface="dark" class="w-full h-8">
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="text-xs font-medium text-[#8e8e93]">X 軸偏移</label>
+                                    <input type="number" id="shadowXNum" class="w-14 bg-[#161618] border border-[#2e2e34] focus:border-[#0a84ff] rounded-lg px-1 text-right text-xs text-white font-mono outline-none">
+                                </div>
+                                <input type="range" id="shadowX" min="-80" max="80" class="w-full">
+                            </div>
+                            <button type="button" id="shadowLinkBtn" onclick="toggleLink('shadow')" class="w-7 h-7 mt-4 rounded-lg flex items-center justify-center transition-all border border-[#0a84ff]/40 bg-[#0a84ff]/20 text-[#0a84ff] shrink-0" title="點擊切換 X/Y 軸連結 (目前：已連結)">
+                                <i class="fa-solid fa-link text-xs"></i>
+                            </button>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="text-xs font-medium text-[#8e8e93]">Y 軸偏移</label>
+                                    <input type="number" id="shadowYNum" class="w-14 bg-[#161618] border border-[#2e2e34] focus:border-[#0a84ff] rounded-lg px-1 text-right text-xs text-white font-mono outline-none">
+                                </div>
+                                <input type="range" id="shadowY" min="-80" max="80" class="w-full">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 背景投影 -->
+                    <div class="p-4 bg-[#1c1c1f] rounded-xl border border-[#34343c] space-y-3">
+                        <div class="pb-2 border-b border-[#34343c] flex justify-between items-center">
+                            <span class="text-xs font-semibold text-white flex items-center gap-1.5">
+                                <i class="fa-solid fa-cloud text-[#8e8e93]"></i> 背景投影 (Drop Shadow)
+                            </span>
+                            <label class="apple-toggle">
+                                <input type="checkbox" id="dropShadowEnabled">
+                                <span class="apple-toggle-track"></span>
+                            </label>
+                        </div>
+                        <div id="dropShadowControls" class="space-y-3 opacity-30 pointer-events-none transition-opacity">
+                            <div class="flex gap-4 items-center">
+                                <div class="w-[144px] shrink-0">
+                                    <label class="block text-xs font-medium text-[#8e8e93] mb-1">投影顏色</label>
+                                    <input type="color" id="dropShadowColor" data-hex-surface="dark" class="w-full h-8">
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <label class="text-xs font-medium text-[#8e8e93]">邊緣模糊 Blur</label>
+                                        <input type="number" id="dropShadowBlurNum" class="w-14 bg-[#161618] border border-[#2e2e34] focus:border-[#0a84ff] rounded-lg px-1 text-right text-xs text-white font-mono outline-none">
+                                    </div>
+                                    <input type="range" id="dropShadowBlur" min="0" max="100" class="w-full">
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <label class="text-xs font-medium text-[#8e8e93]">X 軸偏移</label>
+                                        <input type="number" id="dropShadowXNum" class="w-14 bg-[#161618] border border-[#2e2e34] focus:border-[#0a84ff] rounded-lg px-1 text-right text-xs text-white font-mono outline-none">
+                                    </div>
+                                    <input type="range" id="dropShadowX" min="-80" max="80" class="w-full">
+                                </div>
+                                <button type="button" id="dropShadowLinkBtn" onclick="toggleLink('dropShadow')" class="w-7 h-7 mt-4 rounded-lg flex items-center justify-center transition-all border border-[#0a84ff]/40 bg-[#0a84ff]/20 text-[#0a84ff] shrink-0" title="點擊切換 X/Y 軸連結 (目前：已連結)">
+                                    <i class="fa-solid fa-link text-xs"></i>
+                                </button>
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <label class="text-xs font-medium text-[#8e8e93]">Y 軸偏移</label>
+                                        <input type="number" id="dropShadowYNum" class="w-14 bg-[#161618] border border-[#2e2e34] focus:border-[#0a84ff] rounded-lg px-1 text-right text-xs text-white font-mono outline-none">
+                                    </div>
+                                    <input type="range" id="dropShadowY" min="-80" max="80" class="w-full">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 區塊 9: 整體立體外框 (包覆 3D 陰影) -->
+            <section class="p-6 space-y-4">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-xs font-medium text-[#8e8e93] uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-border-all text-[11px] text-[#0a84ff]"></i> 整體立體外框 (包覆 3D 陰影)
+                        </h2>
+                        <p class="text-[11px] text-[#636366] mt-0.5">包裹文字與立體厚度，創造貼紙裁切輪廓。</p>
+                    </div>
+                    <button onclick="addOuterStroke()" class="text-xs bg-[#242428] hover:bg-[#2c2c30] text-[#0a84ff] border border-[#38383e] px-3.5 py-1.5 rounded-full font-medium transition-colors flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus text-[10px]"></i> 新增立體外框
+                    </button>
+                </div>
+                <div id="outerStrokeList" class="space-y-2.5"></div>
+            </section>
+
+        </div>
+    </aside>
+
+    <!-- 右側畫布預覽與參考圖板 (深色極簡演播室風格，寬度 1:1) -->
+    <main class="w-1/2 shrink-0 flex flex-col relative bg-[#121214] h-screen overflow-hidden">
+        
+        <!-- 畫布主預覽區 -->
+        <div class="flex-[6] flex flex-col relative min-h-0 border-b border-[#26262a]">
+            <!-- 左上角：背景網格切換 -->
+            <div class="absolute top-4 left-4 z-20 flex gap-1 bg-[#1c1c1f]/90 backdrop-blur-md p-1 rounded-full border border-[#34343a] text-xs shadow-lg" id="bgModeGroup">
+                <button onclick="setBgMode('gray-grid')" id="bgBtn_gray-grid" class="px-2.5 py-1 rounded-full transition-all text-white bg-[#2c2c32] shadow font-medium flex items-center gap-1.5" title="中灰色透明網格 (預設)">
+                    <span class="w-2.5 h-2.5 rounded-full bg-[#3c3c42] border border-[#555]"></span>
+                    <span>灰網格</span>
+                </button>
+                <button onclick="setBgMode('light-grid')" id="bgBtn_light-grid" class="px-2.5 py-1 rounded-full transition-all text-[#8e8e93] hover:text-white font-medium flex items-center gap-1.5" title="亮灰透明網格">
+                    <span class="w-2.5 h-2.5 rounded-full bg-[#d0d0d5] border border-white"></span>
+                    <span>亮網格</span>
+                </button>
+                <button onclick="setBgMode('dark')" id="bgBtn_dark" class="px-2.5 py-1 rounded-full transition-all text-[#8e8e93] hover:text-white font-medium flex items-center gap-1.5" title="純黑背景">
+                    <span class="w-2.5 h-2.5 rounded-full bg-[#121214] border border-[#444]"></span>
+                    <span>純黑</span>
+                </button>
+                <button onclick="setBgMode('white')" id="bgBtn_white" class="px-2.5 py-1 rounded-full transition-all text-[#8e8e93] hover:text-white font-medium flex items-center gap-1.5" title="純白背景">
+                    <span class="w-2.5 h-2.5 rounded-full bg-[#ffffff]"></span>
+                    <span>純白</span>
+                </button>
+            </div>
+
+            <div class="absolute top-4 right-4 z-20 flex gap-2 items-center" id="exportControlGroup">
+                <button id="setDirBtn" onclick="setOutputDirectory()" class="bg-[#1c1c1f]/90 backdrop-blur-md hover:bg-[#28282c] text-[#c7c7cc] hover:text-white px-3.5 py-1.5 rounded-full shadow-lg transition-all text-xs font-medium flex items-center gap-2 border border-[#34343a]">
+                    <i class="fa-solid fa-folder-open text-[#8e8e93]"></i> <span id="dirPathText">設定直出資料夾 (可選)</span>
+                </button>
+                
+                <button onclick="exportPerfectPNG()" class="bg-[#0a84ff] hover:bg-[#0071e3] text-white px-4 py-1.5 rounded-full shadow-lg transition-all text-xs font-medium flex items-center gap-2">
+                    <i class="fa-solid fa-download text-xs"></i> <span id="exportBtnText">完美裁切匯出 PNG</span>
+                </button>
+            </div>
+            
+            <div class="flex-1 p-6 flex items-center justify-center overflow-hidden relative">
+                <div id="previewCanvasContainer" class="w-full h-full rounded-2xl checkerboard border border-[#34343a] shadow-2xl flex items-center justify-center overflow-hidden p-6 relative">
+                    <canvas id="canvas" class="drop-shadow-2xl"></canvas>
+                </div>
+            </div>
+            
+            <div class="h-8 bg-[#161618] border-t border-[#26262a] flex items-center justify-between px-6 text-[11px] text-[#8e8e93] shrink-0">
+                <span>單字元獨立層疊渲染 (Per-Character Z-Buffer)</span>
+                <span>TitlePro · 墨水邊界精準平齊</span>
+            </div>
+        </div>
+
+        <!-- 參考圖板 -->
+        <div class="flex-[4] flex flex-col relative bg-[#161618] min-h-[180px]">
+            <div class="h-10 bg-[#161618] border-b border-[#26262a] flex items-center justify-between px-5 shrink-0 z-10">
+                <span class="text-xs font-medium text-white">
+                    <i class="fa-regular fa-image text-[#8e8e93] mr-1.5"></i> 參考圖板 
+                    <span class="font-normal text-[#8e8e93] ml-1.5 hidden sm:inline">(點擊下方貼上 Ctrl+V / Cmd+V 截圖以方便取色)</span>
+                </span>
+                <div class="flex gap-1.5">
+                    <button onclick="refZoomOut()" class="w-7 h-7 flex items-center justify-center bg-[#242428] hover:bg-[#2e2e34] rounded-full text-[#c7c7cc] transition-colors text-xs" title="縮小"><i class="fa-solid fa-minus text-[10px]"></i></button>
+                    <button onclick="refZoomIn()" class="w-7 h-7 flex items-center justify-center bg-[#242428] hover:bg-[#2e2e34] rounded-full text-[#c7c7cc] transition-colors text-xs" title="放大"><i class="fa-solid fa-plus text-[10px]"></i></button>
+                    <button onclick="clearRefImage()" class="w-7 h-7 flex items-center justify-center bg-[#242428] hover:bg-red-950/60 text-[#8e8e93] hover:text-red-400 rounded-full transition-colors text-xs ml-1" title="刪除圖片"><i class="fa-solid fa-trash-can text-[10px]"></i></button>
+                </div>
+            </div>
+            
+            <div id="refContainer" tabindex="0" class="flex-1 overflow-hidden relative flex items-center justify-center focus:outline-none m-3 rounded-xl border border-dashed border-[#34343a] bg-[#121214] group">
+                <div id="refPlaceholder" class="text-[#636366] text-xs pointer-events-none select-none flex flex-col items-center gap-2 transition-opacity">
+                    <i class="fa-regular fa-clipboard text-2xl opacity-40"></i>
+                    <span>點擊此處並貼上 (Ctrl+V) 參考圖片</span>
+                </div>
+                
+                <img id="refImage" src="" class="hidden max-w-none shadow-2xl border border-[#34343a] rounded-lg cursor-grab active:cursor-grabbing" style="transform: scale(1); transform-origin: center center;">
+            </div>
+        </div>
+
+    </main>
+
+    <!-- 浮動提示元件 (Dark Mode 通知風格) -->
+    <div id="toast" class="fixed bottom-8 right-8 bg-[#202024]/95 backdrop-blur-md text-white border border-[#38383e] px-5 py-2.5 rounded-full shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-2.5 pointer-events-none text-xs font-medium">
+        <i class="fa-solid fa-circle-check text-[#30d158] text-base" id="toastIcon"></i>
+        <span id="toastMsg"></span>
+    </div>
+
+    <!-- 載入中遮罩 -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden items-center justify-center">
+        <div class="bg-[#1c1c1f]/95 backdrop-blur-md p-6 rounded-2xl flex flex-col items-center shadow-2xl border border-[#34343a]">
+            <i class="fa-solid fa-circle-notch fa-spin text-3xl text-[#0a84ff] mb-3"></i>
+            <span class="text-white font-medium text-xs mt-1" id="loadingText">同步至雲端中...</span>
+        </div>
+    </div>
+
+    <!-- 自訂深色 HEX 選色盤 Popover (純十六進位制，不含 RGB) -->
+    <div id="hexColorPopover" class="fixed hidden z-[90] w-[250px] bg-[#1c1c1f]/98 backdrop-blur-xl border border-[#3c3c44] rounded-2xl shadow-2xl p-3 space-y-3 select-none">
+        <div id="hexSvWrap" class="hex-sv-wrap">
+            <canvas id="hexSvCanvas" width="224" height="148" class="block w-full h-full"></canvas>
+            <div id="hexSvCursor" class="hex-sv-cursor" style="left: 100%; top: 0%;"></div>
+        </div>
+        <div id="hexHueBar" class="hex-hue-bar">
+            <div id="hexHueCursor" class="hex-hue-cursor" style="left: 0%;"></div>
+        </div>
+        <div class="flex items-center gap-1.5">
+            <div id="hexPopoverPreview" class="w-8 h-8 rounded-lg border border-white/15 shrink-0 shadow-inner"></div>
+            <div class="flex-1 flex items-center bg-[#121214] border border-[#32323a] focus-within:border-[#0a84ff] rounded-lg px-2 h-8">
+                <span class="text-[10px] font-medium text-[#636366] mr-1.5">HEX</span>
+                <input type="text" id="hexPopoverInput" maxlength="7" spellcheck="false" autocomplete="off" class="w-full bg-transparent text-xs font-mono uppercase text-white outline-none tracking-wide" placeholder="#FFFFFF">
+            </div>
+            <button type="button" id="hexPopoverCopyBtn" class="w-8 h-8 rounded-lg bg-[#26262c] hover:bg-[#32323a] text-[#c7c7cc] hover:text-white flex items-center justify-center transition-colors shrink-0" title="複製十六進位色碼">
+                <i class="fa-regular fa-copy text-xs"></i>
+            </button>
+            <button type="button" id="hexPopoverDropperBtn" class="w-8 h-8 rounded-lg bg-[#0a84ff]/20 hover:bg-[#0a84ff]/35 text-[#0a84ff] border border-[#0a84ff]/35 flex items-center justify-center transition-colors shrink-0" title="吸取螢幕 / 畫布 / 參考圖顏色">
+                <i class="fa-solid fa-eye-dropper text-xs"></i>
+            </button>
+        </div>
+        <div class="pt-2 border-t border-[#2e2e36]">
+            <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[10px] font-medium text-[#8e8e93]">常用 / 最近色票</span>
+                <span class="text-[10px] font-mono text-[#636366]">16 進位 HEX</span>
+            </div>
+            <div id="hexRecentSwatches" class="grid grid-cols-9 gap-1.5"></div>
+        </div>
+    </div>
+
+    <!-- 內建畫布/參考圖吸取模式頂部提示列 (當瀏覽器不支援或環境限制原生 EyeDropper 時自動啟用) -->
+    <div id="eyedropperBanner" class="fixed top-4 left-1/2 -translate-x-1/2 z-[95] hidden items-center gap-3 bg-[#1c1c1f]/95 backdrop-blur-xl border border-[#0a84ff]/50 text-white px-4 py-2 rounded-full shadow-2xl text-xs">
+        <i class="fa-solid fa-eye-dropper text-[#0a84ff]"></i>
+        <span>吸色模式：請點擊右側「預覽畫布」或「參考圖板」取色（ESC 取消）</span>
+        <button type="button" onclick="cancelInAppEyedropper()" class="px-2.5 py-0.5 rounded-full bg-[#2c2c34] hover:bg-[#3a3a44] text-[#c7c7cc] hover:text-white text-[11px] font-medium transition-colors">取消</button>
+    </div>
+
+    <!-- 內建吸色放大鏡 Loupe -->
+    <div id="eyedropperLoupe" class="fixed z-[96] hidden pointer-events-none bg-[#1c1c1f]/95 border border-[#484852] rounded-xl p-1.5 shadow-2xl flex items-center gap-2">
+        <div class="relative w-12 h-12 rounded-lg overflow-hidden border border-white/20 shrink-0 bg-[#121214]">
+            <canvas id="eyedropperLoupeCanvas" width="9" height="9" class="w-full h-full block"></canvas>
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div class="w-[7px] h-[7px] border border-white shadow-[0_0_0_1px_rgba(0,0,0,0.85)]"></div>
+            </div>
+        </div>
+        <div class="pr-1.5">
+            <div id="eyedropperLoupeSwatch" class="w-full h-4 rounded border border-white/20 mb-1"></div>
+            <div id="eyedropperLoupeHex" class="text-[11px] font-mono font-semibold text-white tracking-wide">#FFFFFF</div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const textInputEl = document.getElementById('textInput');
+
+        // 安全取得本機儲存資料 (避免 file:/// 崩潰)
+        function getSafeLocalStorage(key, def) {
+            try { return localStorage.getItem(key) || def; } catch (e) { return def; }
+        }
+        function setSafeLocalStorage(key, val) {
+            try { localStorage.setItem(key, val); } catch (e) {}
+        }
+
+        // 核心狀態 (強制所有色碼均為小寫格式，避免 HTML5 input type=color 崩潰)
+        let state = {
+            text: "綜藝字卡",
+            fontFamily: "sans-serif",
+            fontWeight: "normal", 
+            textAlign: "center",
+            fontSize: 250,
+            offsetY: 0,
+            letterSpacing: -10,
+            lineSpacing: 20,
+            scaleX: 1.0,
+            scaleY: 1.0,
+            skewX: 0,          
+            skewY: 0,           
+            rotate: 0,
+            fill: { type: 'gradient', color1: '#e5d4ff', colorMid: '#b58dff', color3: '#9333ea', color4: '#3b82f6', color2: '#6b21ff', pos1: 0, pos2: 60, pos3: 80, pos4: 100, angle: 150, smoothness: 0 },
+            innerShadow: { enabled: false, color: '#fff3a3', opacity: 100, blur: 0, offsetX: 12, offsetY: 12 },
+            strokes: [
+                { id: 1, color: '#ffffff', width: 15 },
+            ],
+            outerStrokes: [],
+            shadow: { enabled: true, color: '#1a0b3c', offsetX: 15, offsetY: 15, extruded: true },
+            dropShadow: { enabled: false, color: '#000000', blur: 30, offsetX: 15, offsetY: 15 }, 
+            glow: { enabled: false, color: '#8b5cf6', blur: 25, opacity: 100 },
+            charStyles: []
+        };
+
+        state.charStyles = new Array(state.text.length).fill(null).map(() => ({}));
+        
+        const localAllowedKeys = [
+            'fontSize', 'offsetY', 'strokes',
+            'fill.type', 'fill.color1', 'fill.colorMid', 'fill.color3', 'fill.color4', 'fill.color2', 'fill.pos1', 'fill.pos2', 'fill.pos3', 'fill.pos4', 'fill.angle', 'fill.smoothness',
+            'shadow.enabled', 'shadow.color', 'shadow.offsetX', 'shadow.offsetY', 'shadow.extruded',
+            'dropShadow.enabled', 'dropShadow.color', 'dropShadow.blur', 'dropShadow.offsetX', 'dropShadow.offsetY'
+        ]; 
+        function isLocalAllowedKey(keyPath) {
+            return keyPath === 'fontSize' || keyPath === 'offsetY' || keyPath === 'strokes' || keyPath.startsWith('fill.') || keyPath.startsWith('shadow.') || keyPath.startsWith('dropShadow.');
+        } 
+
+        function getSelectionRange() {
+            let start = activeSelection.start;
+            let end = activeSelection.end;
+            if (textInputEl.selectionStart !== textInputEl.selectionEnd) {
+                start = textInputEl.selectionStart;
+                end = textInputEl.selectionEnd;
+                activeSelection.start = start;
+                activeSelection.end = end;
+            }
+            return { start, end };
+        }
+
+        function getSelectionRefIndex(start, end) {
+            for (let i = start; i < end; i++) {
+                if (state.text[i] !== '\n') return i;
+            }
+            return start;
+        }
+
+        // 全域同步數值與滑桿工具
+        function syncPaired(baseId, val) {
+            const range = document.getElementById(baseId);
+            const num = document.getElementById(baseId + 'Num');
+            if(range && num) { range.value = val; num.value = val; }
+        }
+
+        // X/Y 軸連結狀態（預設皆為連結）
+        const xyLinks = {
+            innerShadow: true,
+            shadow: true,
+            dropShadow: true
+        };
+
+        window.toggleLink = function(group) {
+            xyLinks[group] = !xyLinks[group];
+            updateLinkUI(group);
+            if (xyLinks[group]) {
+                const { start, end } = getSelectionRange();
+                const refIdx = start !== end ? getSelectionRefIndex(start, end) : -1;
+                const localStyle = (refIdx >= 0 && state.charStyles && state.charStyles[refIdx]) ? state.charStyles[refIdx] : {};
+                if (group === 'innerShadow') {
+                    state.innerShadow.offsetY = state.innerShadow.offsetX;
+                    syncPaired('innerShadowY', state.innerShadow.offsetY);
+                } else if (group === 'shadow') {
+                    const cur = (start !== end && localStyle.shadow) ? mergeDeep(state.shadow, localStyle.shadow) : state.shadow;
+                    updateProperty('shadow.offsetY', cur.offsetX);
+                    syncPaired('shadowY', cur.offsetX);
+                } else if (group === 'dropShadow') {
+                    const cur = (start !== end && localStyle.dropShadow) ? mergeDeep(state.dropShadow, localStyle.dropShadow) : state.dropShadow;
+                    updateProperty('dropShadow.offsetY', cur.offsetX);
+                    syncPaired('dropShadowY', cur.offsetX);
+                }
+                requestRender();
+            }
+        };
+
+        function updateLinkUI(group) {
+            const btn = document.getElementById(group + 'LinkBtn');
+            if (!btn) return;
+            const isLinked = xyLinks[group];
+            if (isLinked) {
+                btn.className = "w-7 h-7 mt-4 rounded-lg flex items-center justify-center transition-all border border-[#0a84ff]/40 bg-[#0a84ff]/20 text-[#0a84ff] shrink-0";
+                btn.innerHTML = '<i class="fa-solid fa-link text-xs"></i>';
+                btn.title = "點擊切換 X/Y 軸連結 (目前：已連結)";
+            } else {
+                btn.className = "w-7 h-7 mt-4 rounded-lg flex items-center justify-center transition-all border border-[#2e2e34] bg-[#242428] text-[#8e8e93] hover:text-white shrink-0";
+                btn.innerHTML = '<i class="fa-solid fa-link-slash text-xs"></i>';
+                btn.title = "點擊切換 X/Y 軸連結 (目前：未連結)";
+            }
+        }
+
+        window.setBgMode = function(mode) {
+            const container = document.getElementById('previewCanvasContainer');
+            if (!container) return;
+            container.classList.remove('checkerboard', 'checkerboard-light', 'bg-solid-dark', 'bg-solid-white');
+            if (mode === 'gray-grid') container.classList.add('checkerboard');
+            else if (mode === 'light-grid') container.classList.add('checkerboard-light');
+            else if (mode === 'dark') container.classList.add('bg-solid-dark');
+            else if (mode === 'white') container.classList.add('bg-solid-white');
+
+            ['gray-grid', 'light-grid', 'dark', 'white'].forEach(m => {
+                const btn = document.getElementById('bgBtn_' + m);
+                if (btn) {
+                    if (m === mode) {
+                        btn.className = "px-2.5 py-1 rounded-full transition-all text-white bg-[#2c2c32] shadow font-medium flex items-center gap-1.5";
+                    } else {
+                        btn.className = "px-2.5 py-1 rounded-full transition-all text-[#8e8e93] hover:text-white font-medium flex items-center gap-1.5";
+                    }
+                }
+            });
+            setSafeLocalStorage('titleProBgMode', mode);
+        };
+
+        let savedPresets = [];
+        try { savedPresets = JSON.parse(getSafeLocalStorage('titleProPresets', '[]')); } catch(e) { savedPresets = []; }
+
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toastIcon');
+            const msgEl = document.getElementById('toastMsg');
+            
+            if(!toast || !icon || !msgEl) return;
+            
+            msgEl.innerText = msg;
+            icon.className = type === 'success' ? 'fa-solid fa-circle-check text-green-400 text-xl' : 'fa-solid fa-triangle-exclamation text-red-400 text-xl';
+            
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
+        }
+
+        let draggedPresetIndex = null;
+        let presetDropTarget = { index: null, position: null };
+        let presetJustDragged = false;
+
+        function clearPresetDropIndicators() {
+            const container = document.getElementById('presetsContainer');
+            if (!container) return;
+            container.querySelectorAll('.preset-drop-before, .preset-drop-after').forEach(el => {
+                el.classList.remove('preset-drop-before', 'preset-drop-after');
+            });
+        }
+
+        function commitPresetReorder() {
+            if (draggedPresetIndex === null || presetDropTarget.index === null) return;
+            let targetIndex = presetDropTarget.position === 'after' ? presetDropTarget.index + 1 : presetDropTarget.index;
+            if (draggedPresetIndex < targetIndex) targetIndex -= 1;
+            if (targetIndex !== draggedPresetIndex && targetIndex >= 0 && targetIndex < savedPresets.length) {
+                const [moved] = savedPresets.splice(draggedPresetIndex, 1);
+                savedPresets.splice(targetIndex, 0, moved);
+                setSafeLocalStorage('titleProPresets', JSON.stringify(savedPresets));
+                renderPresets();
+                syncToCloud(true);
+                showToast("已更新預設樣式順序", "success");
+            }
+        }
+
+        function renderPresets() {
+            const container = document.getElementById('presetsContainer');
+            const dragHint = document.getElementById('presetDragHint');
+            container.innerHTML = '';
+
+            if (dragHint) {
+                if (savedPresets.length > 1) dragHint.classList.remove('hidden');
+                else dragHint.classList.add('hidden');
+            }
+            
+            if (savedPresets.length === 0) {
+                container.innerHTML = '<span class="col-span-full text-xs text-[#8e8e93] italic py-2">尚無預設，請調整參數後點擊右上角儲存。</span>';
+                return;
+            }
+
+            if (!container.dataset.dndBound) {
+                container.dataset.dndBound = '1';
+                container.addEventListener('dragover', (e) => {
+                    if (draggedPresetIndex === null) return;
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                });
+                container.addEventListener('drop', (e) => {
+                    if (draggedPresetIndex === null) return;
+                    e.preventDefault();
+                    commitPresetReorder();
+                    clearPresetDropIndicators();
+                    draggedPresetIndex = null;
+                    presetDropTarget = { index: null, position: null };
+                });
+            }
+
+            savedPresets.forEach((p, index) => {
+                const btn = document.createElement('div');
+                btn.className = "preset-tile relative group h-12 rounded-xl cursor-grab active:cursor-grabbing transition-all hover:scale-105 border border-[#2e2e34] hover:border-[#0a84ff] shadow-sm bg-[#1c1c1f]";
+                btn.draggable = true;
+                btn.dataset.index = String(index);
+                btn.title = `${p.name || '自訂樣式'}（點擊套用，拖曳可調整順序）`;
+
+                btn.onclick = () => {
+                    if (presetJustDragged) return;
+                    loadPreset(p.state);
+                };
+
+                btn.addEventListener('dragstart', (e) => {
+                    draggedPresetIndex = index;
+                    presetDropTarget = { index: null, position: null };
+                    presetJustDragged = true;
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', String(index));
+                    requestAnimationFrame(() => btn.classList.add('preset-dragging'));
+                });
+
+                btn.addEventListener('dragover', (e) => {
+                    if (draggedPresetIndex === null || draggedPresetIndex === index) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.dataTransfer.dropEffect = 'move';
+                    const rect = btn.getBoundingClientRect();
+                    const pos = e.clientX < rect.left + rect.width / 2 ? 'before' : 'after';
+                    if (presetDropTarget.index !== index || presetDropTarget.position !== pos) {
+                        clearPresetDropIndicators();
+                        presetDropTarget = { index, position: pos };
+                        btn.classList.add(pos === 'before' ? 'preset-drop-before' : 'preset-drop-after');
+                    }
+                });
+
+                btn.addEventListener('drop', (e) => {
+                    if (draggedPresetIndex === null) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    commitPresetReorder();
+                    clearPresetDropIndicators();
+                    draggedPresetIndex = null;
+                    presetDropTarget = { index: null, position: null };
+                });
+
+                btn.addEventListener('dragend', () => {
+                    btn.classList.remove('preset-dragging');
+                    clearPresetDropIndicators();
+                    draggedPresetIndex = null;
+                    presetDropTarget = { index: null, position: null };
+                    setTimeout(() => { presetJustDragged = false; }, 0);
+                });
+
+                const previewInner = document.createElement('div');
+                previewInner.className = "w-full h-full rounded-[11px] overflow-hidden checkerboard flex items-center justify-center pointer-events-none";
+                
+                if (p.thumbnail) {
+                    const img = document.createElement('img');
+                    img.src = p.thumbnail;
+                    img.draggable = false;
+                    img.className = "w-full h-full object-contain drop-shadow-sm p-1";
+                    previewInner.appendChild(img);
+                } else {
+                    const iconContainer = document.createElement('div');
+                    iconContainer.className = "text-[#8e8e93] text-sm";
+                    iconContainer.innerHTML = '<i class="fa-solid fa-font"></i>';
+                    previewInner.appendChild(iconContainer);
+                }
+                btn.appendChild(previewInner);
+
+                const del = document.createElement('button');
+                del.type = 'button';
+                del.draggable = false;
+                del.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+                del.className = "absolute -top-1.5 -right-1.5 bg-[#242428] hover:bg-red-600 text-[#8e8e93] hover:text-white border border-[#38383e] rounded-full w-4 h-4 flex items-center justify-center text-[9px] opacity-0 group-hover:opacity-100 transition-opacity shadow-sm z-10 cursor-pointer";
+                del.onclick = (e) => {
+                    e.stopPropagation();
+                    savedPresets.splice(index, 1);
+                    setSafeLocalStorage('titleProPresets', JSON.stringify(savedPresets));
+                    renderPresets();
+                    syncToCloud(true); 
+                    showToast("已刪除預設", "success");
+                };
+                btn.appendChild(del);
+                container.appendChild(btn);
+            });
+        }
+
+        function getAutoCroppedCanvas() {
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const { data, width, height } = imgData;
+            
+            let minX = width, minY = height, maxX = 0, maxY = 0;
+            let found = false;
+
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    if (data[(y * width + x) * 4 + 3] > 0) {
+                        if (x < minX) minX = x;
+                        if (x > maxX) maxX = x;
+                        if (y < minY) minY = y;
+                        if (y > maxY) maxY = y;
+                        found = true;
+                    }
+                }
+            }
+
+            if (!found) return null;
+
+            const padding = 10;
+            const cropW = (maxX - minX + 1) + padding * 2;
+            const cropH = (maxY - minY + 1) + padding * 2;
+            
+            const cropCanvas = document.createElement('canvas');
+            cropCanvas.width = cropW;
+            cropCanvas.height = cropH;
+            const cropCtx = cropCanvas.getContext('2d');
+            cropCtx.drawImage(canvas, minX - padding, minY - padding, cropW, cropH, 0, 0, cropW, cropH);
+            return cropCanvas;
+        }
+
+        function savePreset() {
+            if (!state.text) { showToast("無內容可儲存", "error"); return; }
+            const name = state.text.replace(/\n/g, ' ').substring(0, 10) || "自訂樣式";
+            
+            const cropCnv = getAutoCroppedCanvas();
+            let thumbnailData = "";
+            if (cropCnv) {
+                const maxThumbWidth = 100;
+                let scale = 1;
+                if (cropCnv.width > maxThumbWidth) scale = maxThumbWidth / cropCnv.width;
+                const tCnv = document.createElement('canvas');
+                tCnv.width = cropCnv.width * scale;
+                tCnv.height = cropCnv.height * scale;
+                tCnv.getContext('2d').drawImage(cropCnv, 0, 0, tCnv.width, tCnv.height);
+                thumbnailData = tCnv.toDataURL('image/webp', 0.5);
+            }
+
+            const styleToSave = JSON.parse(JSON.stringify(state));
+            
+            // 剔除不需要儲存的參數，只儲存外觀顏色與線條陰影樣式
+            delete styleToSave.text;
+            delete styleToSave.fontFamily;
+            delete styleToSave.fontWeight;
+            delete styleToSave.textAlign;
+            delete styleToSave.fontSize;
+            delete styleToSave.letterSpacing;
+            delete styleToSave.lineSpacing;
+            delete styleToSave.charStyles;
+            delete styleToSave.scaleX;
+            delete styleToSave.scaleY;
+            delete styleToSave.skewX;
+            delete styleToSave.skewY;
+            delete styleToSave.rotate;
+
+            savedPresets.push({ name, state: styleToSave, thumbnail: thumbnailData });
+            setSafeLocalStorage('titleProPresets', JSON.stringify(savedPresets));
+            renderPresets();
+            syncToCloud(true); 
+            showToast("樣式與縮圖儲存成功！", "success");
+        }
+
+        function loadPreset(newState) {
+            // 載入前先記住目前的「內容與排版」及「姿態變形」參數
+            const preservedSettings = {
+                text: state.text,
+                fontFamily: state.fontFamily,
+                fontWeight: state.fontWeight,
+                textAlign: state.textAlign,
+                fontSize: state.fontSize,
+                letterSpacing: state.letterSpacing,
+                lineSpacing: state.lineSpacing,
+                charStyles: state.charStyles,
+                scaleX: state.scaleX,
+                scaleY: state.scaleY,
+                skewX: state.skewX,
+                skewY: state.skewY,
+                rotate: state.rotate
+            };
+
+            state = JSON.parse(JSON.stringify(newState));
+            
+            // 填補歷史預設的漏洞並強制轉小寫
+            if(!state.fill.type) state.fill.type = 'gradient';
+            if(!state.fill.colorMid) state.fill.colorMid = state.fill.color1;
+            if(state.fill.color3 === undefined) state.fill.color3 = '#9333ea';
+            if(state.fill.color4 === undefined) state.fill.color4 = '#3b82f6';
+            if(state.fill.pos3 === undefined) state.fill.pos3 = 80;
+            if(state.fill.pos4 === undefined) state.fill.pos4 = 100;
+            if(state.glow.opacity === undefined) state.glow.opacity = 100;
+            if(state.fill.angle === undefined) state.fill.angle = 90;
+            if(state.fill.smoothness === undefined) state.fill.smoothness = 100;
+            if(!state.innerShadow) state.innerShadow = { enabled: false, color: '#ffffff', opacity: 80, blur: 15, offsetX: -8, offsetY: -8 };
+            if(!state.dropShadow) state.dropShadow = { enabled: false, color: '#000000', blur: 20, offsetX: 10, offsetY: 10 };
+            if(!state.outerStrokes) state.outerStrokes = [];
+            
+            if(state.fill.color1) state.fill.color1 = state.fill.color1.toLowerCase();
+            if(state.fill.colorMid) state.fill.colorMid = state.fill.colorMid.toLowerCase();
+            if(state.fill.color3) state.fill.color3 = state.fill.color3.toLowerCase();
+            if(state.fill.color4) state.fill.color4 = state.fill.color4.toLowerCase();
+            if(state.fill.color2) state.fill.color2 = state.fill.color2.toLowerCase();
+            if(state.innerShadow.color) state.innerShadow.color = state.innerShadow.color.toLowerCase();
+            if(state.shadow.color) state.shadow.color = state.shadow.color.toLowerCase();
+            if(state.dropShadow.color) state.dropShadow.color = state.dropShadow.color.toLowerCase();
+            if(state.glow.color) state.glow.color = state.glow.color.toLowerCase();
+            if(state.strokes) state.strokes.forEach(s => s.color = s.color.toLowerCase());
+            if(state.outerStrokes) state.outerStrokes.forEach(s => s.color = s.color.toLowerCase());
+            
+            // 還原保留的設定，達成「只換皮膚不換骨架」
+            Object.assign(state, preservedSettings);
+            
+            updateUIFromState();
+            requestRender();
+            showToast("已套用樣式 (保留原本內容與姿態)", "success");
+        }
+
+        function setNested(obj, path, val) {
+            const keys = path.split('.');
+            let current = obj;
+            for(let i=0; i<keys.length-1; i++) {
+                if(current[keys[i]] === undefined) current[keys[i]] = {};
+                current = current[keys[i]];
+            }
+            current[keys[keys.length-1]] = val;
+        }
+
+        let activeSelection = { start: 0, end: 0 };
+
+        function applyCharFill(color, isSolid = true) {
+            let start = activeSelection.start;
+            let end = activeSelection.end;
+            if (textInputEl.selectionStart !== textInputEl.selectionEnd) {
+                start = textInputEl.selectionStart;
+                end = textInputEl.selectionEnd;
+                activeSelection.start = start;
+                activeSelection.end = end;
+            }
+            if (start === end) {
+                state.fill.color1 = color.toLowerCase();
+                if (isSolid) state.fill.type = 'solid';
+                updateUIFromState();
+                requestRender();
+                return;
+            }
+            for (let i = start; i < end; i++) {
+                if (state.text[i] === '\n') continue;
+                if (!state.charStyles[i]) state.charStyles[i] = {};
+                if (!state.charStyles[i].fill) {
+                    state.charStyles[i].fill = JSON.parse(JSON.stringify(state.fill));
+                }
+                state.charStyles[i].fill.color1 = color.toLowerCase();
+                if (isSolid) {
+                    state.charStyles[i].fill.type = 'solid';
+                }
+            }
+            updateUIFromSelection();
+            requestRender();
+        }
+
+        function updateProperty(keyPath, val) {
+            const { start, end } = getSelectionRange();
+            
+            if (isLocalAllowedKey(keyPath) && start !== end) {
+                for (let i = start; i < end; i++) {
+                    if (state.text[i] === '\n') continue;
+                    if (!state.charStyles[i]) state.charStyles[i] = {};
+                    if (keyPath.startsWith('fill.') && !state.charStyles[i].fill) {
+                        state.charStyles[i].fill = JSON.parse(JSON.stringify(state.fill));
+                    }
+                    if (keyPath.startsWith('shadow.') && !state.charStyles[i].shadow) {
+                        state.charStyles[i].shadow = JSON.parse(JSON.stringify(state.shadow));
+                    }
+                    if (keyPath.startsWith('dropShadow.') && !state.charStyles[i].dropShadow) {
+                        state.charStyles[i].dropShadow = JSON.parse(JSON.stringify(state.dropShadow));
+                    }
+                    setNested(state.charStyles[i], keyPath, val);
+                }
+            } else {
+                setNested(state, keyPath, val);
+            }
+        }
+
+        function bindInput(id, keyPath) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const handler = e => {
+                let val = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+                if (e.target.type === 'color') val = val.toLowerCase();
+                updateProperty(keyPath, val);
+                
+                if (id === 'innerShadowEnabled') {
+                    document.getElementById('innerShadowControls').style.opacity = val ? '1' : '0.3';
+                    document.getElementById('innerShadowControls').style.pointerEvents = val ? 'auto' : 'none';
+                }
+                if (id === 'glowEnabled') {
+                    document.getElementById('glowControls').style.opacity = val ? '1' : '0.3';
+                    document.getElementById('glowControls').style.pointerEvents = val ? 'auto' : 'none';
+                }
+                if (id === 'shadowEnabled') {
+                    document.getElementById('shadowControls').style.opacity = val ? '1' : '0.3';
+                    document.getElementById('shadowControls').style.pointerEvents = val ? 'auto' : 'none';
+                }
+                if (id === 'dropShadowEnabled') {
+                    document.getElementById('dropShadowControls').style.opacity = val ? '1' : '0.3';
+                    document.getElementById('dropShadowControls').style.pointerEvents = val ? 'auto' : 'none';
+                }
+                requestRender();
+            };
+            el.addEventListener('input', handler);
+            el.addEventListener('change', handler);
+        }
+
+        function bindPairedInput(baseId, stateKey, isFloat = false) {
+            const rangeEl = document.getElementById(baseId);
+            const numEl = document.getElementById(baseId + 'Num');
+            if (!rangeEl || !numEl) return;
+
+            const handleUpdate = (val) => {
+                let parsed = isFloat ? parseFloat(val) : parseInt(val);
+                if(!isNaN(parsed)) {
+                    updateProperty(stateKey, parsed);
+
+                    if (xyLinks.innerShadow) {
+                        if (stateKey === 'innerShadow.offsetX') {
+                            updateProperty('innerShadow.offsetY', parsed);
+                            syncPaired('innerShadowY', parsed);
+                        } else if (stateKey === 'innerShadow.offsetY') {
+                            updateProperty('innerShadow.offsetX', parsed);
+                            syncPaired('innerShadowX', parsed);
+                        }
+                    }
+                    if (xyLinks.shadow) {
+                        if (stateKey === 'shadow.offsetX') {
+                            updateProperty('shadow.offsetY', parsed);
+                            syncPaired('shadowY', parsed);
+                        } else if (stateKey === 'shadow.offsetY') {
+                            updateProperty('shadow.offsetX', parsed);
+                            syncPaired('shadowX', parsed);
+                        }
+                    }
+                    if (xyLinks.dropShadow) {
+                        if (stateKey === 'dropShadow.offsetX') {
+                            updateProperty('dropShadow.offsetY', parsed);
+                            syncPaired('dropShadowY', parsed);
+                        } else if (stateKey === 'dropShadow.offsetY') {
+                            updateProperty('dropShadow.offsetX', parsed);
+                            syncPaired('dropShadowX', parsed);
+                        }
+                    }
+
+                    requestRender();
+                }
+            };
+            rangeEl.addEventListener('input', (e) => { numEl.value = e.target.value; handleUpdate(e.target.value); });
+            numEl.addEventListener('input', (e) => { rangeEl.value = e.target.value; handleUpdate(e.target.value); });
+        }
+
+        textInputEl.addEventListener('input', function(e) {
+            const newText = e.target.value;
+            const oldText = state.text;
+            
+            let prefix = 0;
+            while(prefix < oldText.length && prefix < newText.length && oldText[prefix] === newText[prefix]) prefix++;
+            
+            let suffix = 0;
+            while(suffix < oldText.length - prefix && suffix < newText.length - prefix && oldText[oldText.length - 1 - suffix] === newText[newText.length - 1 - suffix]) suffix++;
+            
+            const newStyles = [];
+            for (let i = 0; i < newText.length - prefix - suffix; i++) {
+                newStyles.push(prefix > 0 ? JSON.parse(JSON.stringify(state.charStyles[prefix - 1] || {})) : {});
+            }
+            
+            state.charStyles.splice(prefix, oldText.length - prefix - suffix, ...newStyles);
+            state.text = newText;
+            requestRender();
+        });
+
+        window.clearTextSelection = function() {
+            const pos = textInputEl.value.length;
+            activeSelection.start = pos;
+            activeSelection.end = pos;
+            if (document.activeElement === textInputEl) {
+                textInputEl.setSelectionRange(pos, pos);
+            }
+            updateUIFromSelection();
+        };
+
+        function updateUIFromSelection() {
+            const { start, end } = getSelectionRange();
+            const isSelected = start !== end;
+            const refIndex = isSelected ? getSelectionRefIndex(start, end) : -1;
+            const localStyle = (isSelected && state.charStyles && state.charStyles[refIndex]) ? state.charStyles[refIndex] : {};
+            
+            const currentFontSize = localStyle.fontSize !== undefined ? localStyle.fontSize : state.fontSize;
+            const range = document.getElementById('fontSize');
+            const num = document.getElementById('fontSizeNum');
+            if(range && num) { range.value = currentFontSize; num.value = currentFontSize; }
+
+            const currentOffsetY = localStyle.offsetY !== undefined ? localStyle.offsetY : (state.offsetY || 0);
+            const offRange = document.getElementById('charOffsetY');
+            const offNum = document.getElementById('charOffsetYNum');
+            if(offRange && offNum) { offRange.value = currentOffsetY; offNum.value = currentOffsetY; }
+
+            const hint = document.getElementById('charSelectionHint');
+            const fillBadge = document.getElementById('fillSelectionBadge');
+            const strokeBadge = document.getElementById('strokeSelectionBadge');
+            const spaceBadge = document.getElementById('spaceSelectionBadge');
+
+            if (isSelected) {
+                const selTxt = state.text.substring(start, end).replace(/\n/g, ' ');
+                const displayTxt = selTxt.length > 4 ? selTxt.substring(0, 4) + '…' : selTxt;
+                if (hint) {
+                    hint.innerHTML = `<span class="text-[#0a84ff] font-medium"><i class="fa-solid fa-pen-nib mr-1"></i>選取「${displayTxt}」中</span><button onclick="resetSelectedCharStyle()" class="text-[#8e8e93] hover:text-red-400 text-[10px] ml-1.5 underline underline-offset-2">重設此字</button><button onclick="clearTextSelection()" class="text-[#8e8e93] hover:text-white text-[10px] ml-1.5 underline underline-offset-2">切回全域</button>`;
+                }
+                [fillBadge, strokeBadge, spaceBadge].forEach(b => {
+                    if (b) {
+                        b.innerText = `僅套用「${displayTxt}」`;
+                        b.classList.remove('hidden');
+                    }
+                });
+            } else {
+                if (hint) hint.innerHTML = `<span class="text-[#8e8e93]">反白選取文字可單獨微調</span>`;
+                [fillBadge, strokeBadge, spaceBadge].forEach(b => {
+                    if (b) b.classList.add('hidden');
+                });
+            }
+
+            // 填色連動：若選取字元有獨立填色，或回到全域填色
+            const curFill = localStyle.fill ? mergeDeep(state.fill, localStyle.fill) : state.fill;
+            const c1El = document.getElementById('color1');
+            const cMidEl = document.getElementById('colorMid');
+            const c2El = document.getElementById('color2');
+            const c3El = document.getElementById('color3');
+            const c4El = document.getElementById('color4');
+            
+            if (c1El && curFill.color1) c1El.value = curFill.color1.toLowerCase();
+            if (cMidEl && curFill.colorMid) cMidEl.value = curFill.colorMid.toLowerCase();
+            if (c2El && curFill.color2) c2El.value = curFill.color2.toLowerCase();
+            if (c3El && curFill.color3) c3El.value = curFill.color3.toLowerCase();
+            if (c4El && curFill.color4) c4El.value = curFill.color4.toLowerCase();
+            
+            if (curFill.type) {
+                const radio = document.querySelector(`input[name="fillType"][value="${curFill.type}"]`);
+                if (radio) radio.checked = true;
+                toggleGradientUI(curFill.type);
+            }
+
+            if (curFill.angle !== undefined) {
+                const aEl = document.getElementById('angle');
+                const aNum = document.getElementById('angleNum');
+                if (aEl && aNum) { aEl.value = curFill.angle; aNum.value = curFill.angle; }
+            }
+            if (curFill.smoothness !== undefined) {
+                const smEl = document.getElementById('smoothness');
+                const smNum = document.getElementById('smoothnessNum');
+                if (smEl && smNum) { smEl.value = curFill.smoothness; smNum.value = curFill.smoothness; }
+            }
+            if (curFill.pos1 !== undefined) {
+                const p1El = document.getElementById('gradPos1');
+                const p1Num = document.getElementById('gradPos1Num');
+                if (p1El && p1Num) { p1El.value = curFill.pos1; p1Num.value = curFill.pos1; }
+            }
+            if (curFill.pos2 !== undefined) {
+                const p2El = document.getElementById('gradPos2');
+                const p2Num = document.getElementById('gradPos2Num');
+                if (p2El && p2Num) { p2El.value = curFill.pos2; p2Num.value = curFill.pos2; }
+            }
+            if (curFill.pos3 !== undefined) {
+                const p3El = document.getElementById('gradPos3');
+                const p3Num = document.getElementById('gradPos3Num');
+                if (p3El && p3Num) { p3El.value = curFill.pos3; p3Num.value = curFill.pos3; }
+            }
+            if (curFill.pos4 !== undefined) {
+                const p4El = document.getElementById('gradPos4');
+                const p4Num = document.getElementById('gradPos4Num');
+                if (p4El && p4Num) { p4El.value = curFill.pos4; p4Num.value = curFill.pos4; }
+            }
+
+            // 空間感連動 (立體厚度與背景投影)
+            const curShadow = localStyle.shadow ? mergeDeep(state.shadow, localStyle.shadow) : state.shadow;
+            document.getElementById('shadowEnabled').checked = !!curShadow.enabled;
+            document.getElementById('shadowExtruded').checked = !!curShadow.extruded;
+            document.getElementById('shadowColor').value = (curShadow.color || '#000000').toLowerCase();
+            syncPaired('shadowX', curShadow.offsetX);
+            syncPaired('shadowY', curShadow.offsetY);
+            document.getElementById('shadowControls').style.opacity = curShadow.enabled ? '1' : '0.3';
+            document.getElementById('shadowControls').style.pointerEvents = curShadow.enabled ? 'auto' : 'none';
+
+            const curDropShadow = localStyle.dropShadow ? mergeDeep(state.dropShadow, localStyle.dropShadow) : state.dropShadow;
+            document.getElementById('dropShadowEnabled').checked = !!curDropShadow.enabled;
+            document.getElementById('dropShadowColor').value = (curDropShadow.color || '#000000').toLowerCase();
+            syncPaired('dropShadowBlur', curDropShadow.blur);
+            syncPaired('dropShadowX', curDropShadow.offsetX);
+            syncPaired('dropShadowY', curDropShadow.offsetY);
+            document.getElementById('dropShadowControls').style.opacity = curDropShadow.enabled ? '1' : '0.3';
+            document.getElementById('dropShadowControls').style.pointerEvents = curDropShadow.enabled ? 'auto' : 'none';
+
+            // 文字外框列表連動
+            renderStrokeUI();
+            if (typeof syncAllColorControls === 'function') syncAllColorControls();
+        }
+
+
+        const handleSelectRange = () => {
+            if (textInputEl.selectionStart !== textInputEl.selectionEnd) {
+                activeSelection.start = textInputEl.selectionStart;
+                activeSelection.end = textInputEl.selectionEnd;
+            } else {
+                activeSelection.start = textInputEl.selectionStart;
+                activeSelection.end = textInputEl.selectionEnd;
+            }
+            updateUIFromSelection();
+        };
+
+        textInputEl.addEventListener('keyup', handleSelectRange);
+        textInputEl.addEventListener('mouseup', handleSelectRange);
+        textInputEl.addEventListener('select', handleSelectRange);
+        textInputEl.addEventListener('pointerup', handleSelectRange);
+
+        document.addEventListener('selectionchange', () => {
+            if (document.activeElement === textInputEl) {
+                handleSelectRange();
+            }
+        });
+
+        window.nudgeCharOffsetY = function(delta) {
+            const { start, end } = getSelectionRange();
+            const refIndex = start !== end ? getSelectionRefIndex(start, end) : Math.max(0, start - 1);
+            const localStyle = (start !== end && state.charStyles && state.charStyles[refIndex]) ? state.charStyles[refIndex] : {};
+            let cur = localStyle.offsetY !== undefined ? localStyle.offsetY : (state.offsetY || 0);
+            let nextVal = Math.round((cur + delta) * 10) / 10;
+            updateProperty('offsetY', nextVal);
+            const range = document.getElementById('charOffsetY');
+            const num = document.getElementById('charOffsetYNum');
+            if (range) range.value = nextVal;
+            if (num) num.value = nextVal;
+            requestRender();
+        };
+
+        window.resetSelectedCharStyle = function() {
+            const { start, end } = getSelectionRange();
+            if (start !== end) {
+                for (let i = start; i < end; i++) {
+                    state.charStyles[i] = {};
+                }
+                updateUIFromSelection();
+                requestRender();
+                showToast("已重設選取字之自訂樣式", "success");
+            }
+        };
+
+        const resetBtnEl = document.getElementById('resetCharStyleBtn');
+        if (resetBtnEl) {
+            resetBtnEl.addEventListener('click', (e) => {
+                e.preventDefault();
+                resetSelectedCharStyle();
+            });
+        }
+
+        bindInput('textInput', 'text'); 
+        bindInput('fontWeight', 'fontWeight');
+        bindInput('color1', 'fill.color1');
+        bindInput('colorMid', 'fill.colorMid');
+        bindInput('color3', 'fill.color3');
+        bindInput('color4', 'fill.color4');
+        bindInput('color2', 'fill.color2');
+        
+        bindInput('innerShadowEnabled', 'innerShadow.enabled');
+        bindInput('innerShadowColor', 'innerShadow.color');
+        bindInput('glowEnabled', 'glow.enabled');
+        bindInput('glowColor', 'glow.color');
+        bindInput('shadowEnabled', 'shadow.enabled');
+        bindInput('shadowColor', 'shadow.color');
+        bindInput('shadowExtruded', 'shadow.extruded');
+        bindInput('dropShadowEnabled', 'dropShadow.enabled');
+        bindInput('dropShadowColor', 'dropShadow.color');
+
+        bindPairedInput('fontSize', 'fontSize');
+        bindPairedInput('charOffsetY', 'offsetY', true);
+        bindPairedInput('letterSpacing', 'letterSpacing');
+        bindPairedInput('lineSpacing', 'lineSpacing');
+        bindPairedInput('scaleX', 'scaleX', true);
+        bindPairedInput('scaleY', 'scaleY', true);
+        bindPairedInput('skewX', 'skewX');
+        bindPairedInput('skewY', 'skewY');
+        bindPairedInput('rotate', 'rotate');
+        
+        bindPairedInput('gradPos1', 'fill.pos1');
+        bindPairedInput('gradPos2', 'fill.pos2');
+        bindPairedInput('gradPos3', 'fill.pos3');
+        bindPairedInput('gradPos4', 'fill.pos4');
+        
+        bindPairedInput('angle', 'fill.angle');
+        bindPairedInput('smoothness', 'fill.smoothness');
+        bindPairedInput('innerShadowOpacity', 'innerShadow.opacity');
+        bindPairedInput('innerShadowBlur', 'innerShadow.blur');
+        bindPairedInput('innerShadowX', 'innerShadow.offsetX');
+        bindPairedInput('innerShadowY', 'innerShadow.offsetY');
+        bindPairedInput('glowBlur', 'glow.blur');
+        bindPairedInput('glowOpacity', 'glow.opacity');
+        bindPairedInput('shadowX', 'shadow.offsetX');
+        bindPairedInput('shadowY', 'shadow.offsetY');
+        bindPairedInput('dropShadowBlur', 'dropShadow.blur');
+        bindPairedInput('dropShadowX', 'dropShadow.offsetX');
+        bindPairedInput('dropShadowY', 'dropShadow.offsetY');
+
+        document.querySelectorAll("input[name='fillType']").forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                updateProperty('fill.type', e.target.value);
+                toggleGradientUI(e.target.value);
+                requestRender();
+            });
+        });
+
+        document.querySelectorAll("input[name='textAlign']").forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                setNested(state, 'textAlign', e.target.value);
+                requestRender();
+            });
+        });
+
+        function toggleGradientUI(type) {
+            const elsGrad = document.querySelectorAll('.grad-only');
+            const elsGrad5 = document.querySelectorAll('.grad5-only');
+            const lblColor1 = document.getElementById('lblColor1');
+            const lblColor2 = document.getElementById('lblColor2');
+            
+            if(type === 'solid') {
+                elsGrad.forEach(el => { el.style.opacity = '0.3'; el.style.pointerEvents = 'none'; });
+                elsGrad5.forEach(el => { el.classList.add('hidden'); });
+                lblColor1.innerText = "文字顏色";
+            } else if (type === 'gradient') {
+                elsGrad.forEach(el => { el.style.opacity = '1'; el.style.pointerEvents = 'auto'; });
+                elsGrad5.forEach(el => { el.classList.add('hidden'); });
+                lblColor1.innerText = "起點色 (Color 1)";
+                if(lblColor2) lblColor2.innerText = "終點色 (Color 3)";
+            } else if (type === 'gradient5') {
+                elsGrad.forEach(el => { el.style.opacity = '1'; el.style.pointerEvents = 'auto'; });
+                elsGrad5.forEach(el => { el.classList.remove('hidden'); });
+                lblColor1.innerText = "起點色 (Color 1)";
+                if(lblColor2) lblColor2.innerText = "終點色 (Color 5)";
+            }
+        }
+
+        function updateUIFromState() {
+            document.getElementById('textInput').value = state.text;
+            document.getElementById('fontWeight').value = state.fontWeight || 'normal';
+            
+            // 強制小寫回填 UI
+            document.getElementById('color1').value = (state.fill.color1 || '#ffffff').toLowerCase();
+            document.getElementById('colorMid').value = (state.fill.colorMid || '#ffffff').toLowerCase();
+            document.getElementById('color3').value = (state.fill.color3 || '#9333ea').toLowerCase();
+            document.getElementById('color4').value = (state.fill.color4 || '#3b82f6').toLowerCase();
+            document.getElementById('color2').value = (state.fill.color2 || '#ffffff').toLowerCase();
+            
+            document.getElementById('innerShadowColor').value = (state.innerShadow.color || '#ffffff').toLowerCase();
+            document.getElementById('glowColor').value = (state.glow.color || '#ffffff').toLowerCase();
+            document.getElementById('shadowColor').value = (state.shadow.color || '#000000').toLowerCase();
+            document.getElementById('dropShadowColor').value = (state.dropShadow.color || '#000000').toLowerCase();
+            
+            document.getElementById('innerShadowEnabled').checked = state.innerShadow.enabled;
+            document.getElementById('glowEnabled').checked = state.glow.enabled;
+            document.getElementById('shadowEnabled').checked = state.shadow.enabled;
+            document.getElementById('shadowExtruded').checked = state.shadow.extruded;
+            document.getElementById('dropShadowEnabled').checked = state.dropShadow.enabled;
+
+            document.querySelector(`input[name="fillType"][value="${state.fill.type}"]`).checked = true;
+            toggleGradientUI(state.fill.type);
+
+            if (state.textAlign && document.querySelector(`input[name="textAlign"][value="${state.textAlign}"]`)) {
+                document.querySelector(`input[name="textAlign"][value="${state.textAlign}"]`).checked = true;
+            }
+
+            updateUIFromSelection(); 
+            syncPaired('charOffsetY', state.offsetY || 0);
+
+            syncPaired('letterSpacing', state.letterSpacing);
+            syncPaired('lineSpacing', state.lineSpacing);
+            syncPaired('scaleX', state.scaleX);
+            syncPaired('scaleY', state.scaleY);
+            syncPaired('skewX', state.skewX);
+            syncPaired('skewY', state.skewY); 
+            syncPaired('rotate', state.rotate);
+            
+            syncPaired('gradPos1', state.fill.pos1);
+            syncPaired('gradPos2', state.fill.pos2);
+            syncPaired('gradPos3', state.fill.pos3 !== undefined ? state.fill.pos3 : 80);
+            syncPaired('gradPos4', state.fill.pos4 !== undefined ? state.fill.pos4 : 100);
+            
+            syncPaired('angle', state.fill.angle);
+            syncPaired('smoothness', state.fill.smoothness);
+            
+            syncPaired('innerShadowOpacity', state.innerShadow.opacity);
+            syncPaired('innerShadowBlur', state.innerShadow.blur);
+            syncPaired('innerShadowX', state.innerShadow.offsetX);
+            syncPaired('innerShadowY', state.innerShadow.offsetY);
+
+            syncPaired('glowOpacity', state.glow.opacity !== undefined ? state.glow.opacity : 100);
+            syncPaired('glowBlur', state.glow.blur);
+            
+            syncPaired('shadowX', state.shadow.offsetX);
+            syncPaired('shadowY', state.shadow.offsetY);
+            syncPaired('dropShadowBlur', state.dropShadow.blur);
+            syncPaired('dropShadowX', state.dropShadow.offsetX);
+            syncPaired('dropShadowY', state.dropShadow.offsetY);
+
+            updateLinkUI('innerShadow');
+            updateLinkUI('shadow');
+            updateLinkUI('dropShadow');
+
+            document.getElementById('innerShadowControls').style.opacity = state.innerShadow.enabled ? '1' : '0.3';
+            document.getElementById('innerShadowControls').style.pointerEvents = state.innerShadow.enabled ? 'auto' : 'none';
+            document.getElementById('glowControls').style.opacity = state.glow.enabled ? '1' : '0.3';
+            document.getElementById('glowControls').style.pointerEvents = state.glow.enabled ? 'auto' : 'none';
+            document.getElementById('shadowControls').style.opacity = state.shadow.enabled ? '1' : '0.3';
+            document.getElementById('shadowControls').style.pointerEvents = state.shadow.enabled ? 'auto' : 'none';
+            document.getElementById('dropShadowControls').style.opacity = state.dropShadow.enabled ? '1' : '0.3';
+            document.getElementById('dropShadowControls').style.pointerEvents = state.dropShadow.enabled ? 'auto' : 'none';
+
+            // 更新字體選單顯示名稱
+            renderFontList(); 
+
+            renderStrokeUI();
+            renderOuterStrokeUI();
+            if (typeof syncAllColorControls === 'function') syncAllColorControls();
+        }
+
+        function renderStrokeUI() {
+            const list = document.getElementById('strokeList');
+            list.innerHTML = '';
+            const { start, end } = getSelectionRange();
+            let targetStrokes = state.strokes;
+            if (start !== end) {
+                const refIdx = getSelectionRefIndex(start, end);
+                if (state.charStyles && state.charStyles[refIdx] && state.charStyles[refIdx].strokes) {
+                    targetStrokes = state.charStyles[refIdx].strokes;
+                }
+            }
+            targetStrokes.forEach((stroke, index) => {
+                const item = document.createElement('div');
+                item.className = 'flex items-center gap-2.5 bg-[#1c1c1f] p-2.5 rounded-xl border border-[#2e2e34]';
+                item.innerHTML = `
+                    <span class="text-xs text-[#8e8e93] font-medium w-4 text-center shrink-0">${index + 1}</span>
+                    <div class="w-[138px] shrink-0">
+                        <input type="color" data-hex-surface="dark" value="${(stroke.color || '#ffffff').toLowerCase()}" oninput="updateStroke(${index}, 'color', this.value, this)" class="w-full h-8">
+                    </div>
+                    <div class="flex-1 flex items-center gap-2 min-w-0">
+                        <span class="text-xs text-[#8e8e93] shrink-0">寬</span>
+                        <input type="number" min="1" max="150" value="${stroke.width}" oninput="updateStroke(${index}, 'width', this.value, this, true)" class="w-12 bg-[#161618] border border-[#2e2e34] focus:border-[#0a84ff] rounded-lg px-1.5 py-0.5 text-right text-xs text-white font-mono outline-none shrink-0">
+                        <input type="range" min="1" max="150" value="${stroke.width}" oninput="updateStroke(${index}, 'width', this.value, this, false)" class="w-full min-w-0">
+                    </div>
+                    <button onclick="removeStroke(${index})" class="text-[#8e8e93] hover:text-red-400 p-1 transition-colors shrink-0"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                `;
+                list.appendChild(item);
+            });
+            if (typeof initHexColorControls === 'function') initHexColorControls(list);
+        }
+        window.addStroke = function() {
+            const { start, end } = getSelectionRange();
+            const newId = Date.now();
+            if (start !== end) {
+                for (let i = start; i < end; i++) {
+                    if (state.text[i] === '\n') continue;
+                    if (!state.charStyles[i]) state.charStyles[i] = {};
+                    if (!state.charStyles[i].strokes) {
+                        state.charStyles[i].strokes = JSON.parse(JSON.stringify(state.strokes));
+                    }
+                    const arr = state.charStyles[i].strokes;
+                    const maxWidth = arr.length ? Math.max(...arr.map(s => s.width)) : 0;
+                    arr.push({ id: newId, color: '#ffffff', width: maxWidth + 15 });
+                }
+            } else {
+                const maxWidth = state.strokes.length ? Math.max(...state.strokes.map(s => s.width)) : 0;
+                state.strokes.push({ id: newId, color: '#ffffff', width: maxWidth + 15 });
+            }
+            renderStrokeUI(); requestRender();
+        }
+        window.removeStroke = function(index) {
+            const { start, end } = getSelectionRange();
+            if (start !== end) {
+                for (let i = start; i < end; i++) {
+                    if (state.text[i] === '\n') continue;
+                    if (!state.charStyles[i]) state.charStyles[i] = {};
+                    if (!state.charStyles[i].strokes) {
+                        state.charStyles[i].strokes = JSON.parse(JSON.stringify(state.strokes));
+                    }
+                    if (index >= 0 && index < state.charStyles[i].strokes.length) {
+                        state.charStyles[i].strokes.splice(index, 1);
+                    }
+                }
+            } else {
+                if (index >= 0 && index < state.strokes.length) {
+                    state.strokes.splice(index, 1);
+                }
+            }
+            renderStrokeUI(); requestRender();
+        }
+        window.updateStroke = function(index, key, value, el, fromNumBox = false) {
+            if (value === '') return;
+            const parsedVal = key === 'width' ? parseInt(value) : value.toLowerCase();
+            if (key === 'width' && isNaN(parsedVal)) return;
+
+            const { start, end } = getSelectionRange();
+            if (start !== end) {
+                for (let i = start; i < end; i++) {
+                    if (state.text[i] === '\n') continue;
+                    if (!state.charStyles[i]) state.charStyles[i] = {};
+                    if (!state.charStyles[i].strokes) {
+                        state.charStyles[i].strokes = JSON.parse(JSON.stringify(state.strokes));
+                    }
+                    if (state.charStyles[i].strokes[index]) {
+                        state.charStyles[i].strokes[index][key] = parsedVal;
+                    }
+                }
+            } else {
+                if (state.strokes[index]) {
+                    state.strokes[index][key] = parsedVal;
+                }
+            }
+
+            if (key === 'width' && el) {
+                if (fromNumBox) {
+                    const sib = el.nextElementSibling;
+                    if (sib && sib.type === 'range') sib.value = parsedVal;
+                } else {
+                    const sib = el.previousElementSibling;
+                    if (sib && sib.type === 'number') sib.value = parsedVal;
+                }
+            }
+            requestRender();
+        }
+
+        function renderOuterStrokeUI() {
+            const list = document.getElementById('outerStrokeList');
+            list.innerHTML = '';
+            if(!state.outerStrokes) state.outerStrokes = [];
+            state.outerStrokes.forEach((stroke, index) => {
+                const item = document.createElement('div');
+                item.className = 'flex items-center gap-2.5 bg-[#1c1c1f] p-2.5 rounded-xl border border-[#2e2e34]';
+                item.innerHTML = `
+                    <span class="text-xs text-[#8e8e93] font-medium w-4 text-center shrink-0">${index + 1}</span>
+                    <div class="w-[138px] shrink-0">
+                        <input type="color" data-hex-surface="dark" value="${(stroke.color || '#ffd700').toLowerCase()}" oninput="updateOuterStroke(${stroke.id}, 'color', this.value, this)" class="w-full h-8">
+                    </div>
+                    <div class="flex-1 flex items-center gap-2 min-w-0">
+                        <span class="text-xs text-[#8e8e93] shrink-0">寬</span>
+                        <input type="number" min="1" max="250" value="${stroke.width}" oninput="updateOuterStroke(${stroke.id}, 'width', this.value, this, true)" class="w-12 bg-[#161618] border border-[#2e2e34] focus:border-[#0a84ff] rounded-lg px-1.5 py-0.5 text-right text-xs text-white font-mono outline-none shrink-0">
+                        <input type="range" min="1" max="250" value="${stroke.width}" oninput="updateOuterStroke(${stroke.id}, 'width', this.value, this, false)" class="w-full min-w-0">
+                    </div>
+                    <button onclick="removeOuterStroke(${stroke.id})" class="text-[#8e8e93] hover:text-red-400 p-1 transition-colors shrink-0"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                `;
+                list.appendChild(item);
+            });
+            if (typeof initHexColorControls === 'function') initHexColorControls(list);
+        }
+        window.addOuterStroke = function() {
+            if(!state.outerStrokes) state.outerStrokes = [];
+            const maxInner = state.strokes.length ? Math.max(...state.strokes.map(s => s.width)) : 0;
+            const maxOuter = state.outerStrokes.length ? Math.max(...state.outerStrokes.map(s => s.width)) : 0;
+            state.outerStrokes.push({ id: Date.now(), color: '#ffd700', width: Math.max(maxInner, maxOuter) + 20 });
+            renderOuterStrokeUI(); requestRender();
+        }
+        window.removeOuterStroke = function(id) {
+            state.outerStrokes = state.outerStrokes.filter(s => s.id !== id);
+            renderOuterStrokeUI(); requestRender();
+        }
+        window.updateOuterStroke = function(id, key, value, el, fromNumBox = false) {
+            const stroke = state.outerStrokes.find(s => s.id === id);
+            if (stroke && value !== '') {
+                const parsedVal = key === 'width' ? parseInt(value) : value.toLowerCase();
+                if (key === 'width' && isNaN(parsedVal)) return;
+                stroke[key] = parsedVal;
+                if (key === 'width' && el) {
+                    if (fromNumBox) {
+                        const sib = el.nextElementSibling;
+                        if (sib && sib.type === 'range') sib.value = parsedVal;
+                    } else {
+                        const sib = el.previousElementSibling;
+                        if (sib && sib.type === 'number') sib.value = parsedVal;
+                    }
+                }
+                requestRender();
+            }
+        }
+
+        function showLoading(show, text = "同步至雲端中...") {
+            const el = document.getElementById('loadingOverlay');
+            document.getElementById('loadingText').innerText = text;
+            if (show) { el.classList.remove('hidden'); el.classList.add('flex'); }
+            else { el.classList.add('hidden'); el.classList.remove('flex'); }
+        }
+
+        window.setCloudUrl = function() {
+            const currentUrl = getSafeLocalStorage('titleProGasUrl', '');
+            const newUrl = prompt("請輸入您的 Google Apps Script 部署 URL：\n(若要清空請直接按確定)\n\n※如果上傳一直失敗，請確認已點擊「新增部署作業」，且權限設定為「所有人」。", currentUrl);
+            if (newUrl !== null) {
+                setSafeLocalStorage('titleProGasUrl', newUrl.trim());
+                if(newUrl.trim()) showToast("已儲存雲端備份連結！", "success");
+                else showToast("已清除雲端備份連結！", "success");
+            }
+        };
+
+        async function syncToCloud(silent = false) {
+            let gasUrl = getSafeLocalStorage('titleProGasUrl', '');
+            if (!gasUrl) {
+                if (silent) return; 
+                setCloudUrl();
+                gasUrl = getSafeLocalStorage('titleProGasUrl', '');
+                if (!gasUrl) return;
+            }
+
+            if (!silent) showLoading(true, "正在上傳備份至雲端...");
+            try {
+                const res = await fetch(gasUrl, {
+                    method: 'POST',
+                    redirect: 'follow',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'save', presets: savedPresets })
+                });
+                
+                const responseText = await res.text();
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch(parseErr) {
+                    console.error("Google 回傳非 JSON 格式:", responseText);
+                    throw new Error("伺服器回傳格式錯誤。請確認您的網址是最新部署的「網頁應用程式」，且「執行身分」為您自己、「存取權」設為所有人。");
+                }
+                
+                if (result.status === 'success') {
+                    if (!silent) showToast("雲端同步覆寫完成！", "success");
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (err) {
+                console.error(err);
+                if (!silent) {
+                    showLoading(false);
+                    if (confirm("雲端同步失敗！\n\n錯誤原因：" + err.message + "\n\n是否要重新輸入備份連結？")) {
+                        setCloudUrl();
+                    }
+                }
+            } finally {
+                if (!silent) showLoading(false);
+            }
+        }
+
+        async function downloadFromCloud() {
+            let gasUrl = getSafeLocalStorage('titleProGasUrl', '');
+            if (!gasUrl) {
+                setCloudUrl();
+                gasUrl = getSafeLocalStorage('titleProGasUrl', '');
+                if (!gasUrl) return;
+            }
+            
+            showLoading(true, "正在下載雲端備份...");
+            try {
+                const res = await fetch(gasUrl, { redirect: 'follow' });
+                const responseText = await res.text();
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch(parseErr) {
+                    console.error("Google 回傳非 JSON 格式:", responseText);
+                    throw new Error("伺服器回傳格式錯誤。請確認網址正確或重新部署。");
+                }
+                
+                if (result.status === 'success') {
+                    savedPresets = result.presets || [];
+                    setSafeLocalStorage('titleProPresets', JSON.stringify(savedPresets));
+                    renderPresets();
+                    showToast("雲端資料已成功載入覆蓋！", "success");
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (err) {
+                console.error(err);
+                showLoading(false);
+                if (confirm("下載備份失敗！\n\n錯誤原因：" + err.message + "\n\n是否要重新輸入備份連結？")) {
+                    setCloudUrl();
+                }
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        const dbName = "TitleProFontsDB";
+        let db;
+        try {
+            const request = indexedDB.open(dbName, 1);
+            request.onupgradeneeded = e => { db = e.target.result; db.createObjectStore("fonts", { keyPath: "name" }); };
+            request.onsuccess = e => { db = e.target.result; loadSavedFonts(); };
+            request.onerror = e => { console.warn("瀏覽器安全限制: 無法開啟 IndexedDB。自訂字體功能暫時停用。"); }
+        } catch(e) {
+            console.warn("無法初始化 IndexedDB:", e);
+        }
+
+        // --- 全新下拉選單邏輯 ---
+        const customFontSelect = document.getElementById('customFontSelect');
+        const fontDropdownPanel = document.getElementById('fontDropdownPanel');
+        const currentFontName = document.getElementById('currentFontName');
+
+        customFontSelect.addEventListener('click', (e) => {
+            if(e.target.closest('button') || e.target.closest('input')) return;
+            fontDropdownPanel.classList.toggle('hidden');
+            fontDropdownPanel.classList.toggle('flex');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!customFontSelect.contains(e.target)) {
+                fontDropdownPanel.classList.add('hidden');
+                fontDropdownPanel.classList.remove('flex');
+            }
+        });
+
+        function renderFontList() {
+            fontDropdownPanel.innerHTML = '';
+            const defaultFonts = [
+                { name: 'sans-serif', label: '系統預設黑體 (Sans-Serif)' },
+                { name: 'serif', label: '系統預設明體 (Serif)' }
+            ];
+
+            const addOption = (fontName, label, isCustom = false) => {
+                const opt = document.createElement('div');
+                opt.className = `px-3.5 py-2 hover:bg-[#2c2c30] hover:text-white cursor-pointer flex justify-between items-center group transition-colors rounded-lg mx-1 ${state.fontFamily === fontName ? 'bg-[#0a84ff]/20 text-[#0a84ff] font-medium' : 'text-[#f2f2f7]'}`;
+                
+                const span = document.createElement('span');
+                span.innerText = label;
+                span.style.fontFamily = `"${fontName}", sans-serif`;
+                span.className = "truncate flex-1 text-xs";
+                opt.appendChild(span);
+
+                if (isCustom) {
+                    const delBtn = document.createElement('button');
+                    delBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
+                    delBtn.className = "text-[#8e8e93] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity p-1 ml-2 rounded text-xs";
+                    delBtn.title = "單獨刪除此字體";
+                    delBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        deleteFont(fontName);
+                    };
+                    opt.appendChild(delBtn);
+                }
+
+                opt.onclick = () => {
+                    state.fontFamily = fontName;
+                    currentFontName.innerText = label;
+                    currentFontName.style.fontFamily = `"${fontName}", sans-serif`;
+                    fontDropdownPanel.classList.add('hidden');
+                    fontDropdownPanel.classList.remove('flex');
+                    renderFontList();
+                    requestRender();
+                };
+
+                fontDropdownPanel.appendChild(opt);
+                
+                if (state.fontFamily === fontName) {
+                    currentFontName.innerText = label;
+                    currentFontName.style.fontFamily = `"${fontName}", sans-serif`;
+                }
+            };
+
+            defaultFonts.forEach(f => addOption(f.name, f.label, false));
+
+            if (db) {
+                const tx = db.transaction("fonts", "readonly");
+                const req = tx.objectStore("fonts").getAll();
+                req.onsuccess = () => {
+                    req.result.forEach(f => {
+                        addOption(f.name, f.fileName || f.name, true);
+                    });
+                };
+            }
+        }
+
+        function deleteFont(fontName) {
+            if (!confirm(`確定要刪除自訂字體嗎？\n(若目前套用中，將退回系統字體)`)) return;
+            if (db) {
+                const tx = db.transaction("fonts", "readwrite");
+                tx.objectStore("fonts").delete(fontName);
+                tx.oncomplete = () => {
+                    if (state.fontFamily === fontName) {
+                        state.fontFamily = 'sans-serif';
+                        requestRender();
+                    }
+                    renderFontList();
+                    showToast("字體已成功刪除", "success");
+                };
+            }
+        }
+
+        async function loadSavedFonts() {
+            const tx = db.transaction("fonts", "readonly");
+            const req = tx.objectStore("fonts").getAll();
+            req.onsuccess = async () => {
+                for (let f of req.result) {
+                    try {
+                        const fontFace = new FontFace(f.name, f.data, { unicodeRange: 'U+0000-10FFFF' });
+                        await fontFace.load();
+                        document.fonts.add(fontFace);
+                    } catch(err) {}
+                }
+                renderFontList();
+                requestRender();
+            };
+        }
+
+        document.getElementById('fontUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const fontName = 'CustomFont_' + Date.now();
+                const font = new FontFace(fontName, evt.target.result, { unicodeRange: 'U+0000-10FFFF' });
+                font.load().then(function(loadedFont) {
+                    document.fonts.add(loadedFont);
+                    if (db) db.transaction("fonts", "readwrite").objectStore("fonts").put({ name: fontName, fileName: file.name, data: evt.target.result });
+                    
+                    state.fontFamily = fontName;
+                    renderFontList();
+                    showToast(`字體 "${file.name}" 載入並記憶成功！`, 'success');
+                    requestRender();
+                });
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        function mergeDeep(target, source) {
+            let output = Object.assign({}, target);
+            if (target && typeof target === 'object' && source && typeof source === 'object') {
+                Object.keys(source).forEach(key => {
+                    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+                        if (!(key in target)) Object.assign(output, { [key]: source[key] });
+                        else output[key] = mergeDeep(target[key], source[key]);
+                    } else if (Array.isArray(source[key])) {
+                        output[key] = JSON.parse(JSON.stringify(source[key]));
+                    } else {
+                        Object.assign(output, { [key]: source[key] });
+                    }
+                });
+            }
+            return output;
+        }
+
+        function hexToRgba(hex, opacity) {
+            let r = parseInt(hex.slice(1, 3), 16) || 0; 
+            let g = parseInt(hex.slice(3, 5), 16) || 0; 
+            let b = parseInt(hex.slice(5, 7), 16) || 0;
+            return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`;
+        }
+
+        let renderPending = false;
+        function requestRender() {
+            if (!renderPending) {
+                renderPending = true;
+                requestAnimationFrame(() => {
+                    render();
+                    renderPending = false;
+                });
+            }
+        }
+
+        const bufferCnv = document.createElement('canvas');
+        const bufferCtx = bufferCnv.getContext('2d', { willReadFrequently: true });
+        
+        const charCnv = document.createElement('canvas');
+        const charCtx = charCnv.getContext('2d', { willReadFrequently: true });
+
+        // 新增獨立畫布：專門用來處理「文字填色 + 內陰影」，以隔離圖層避免污染外框
+        const textFillCnv = document.createElement('canvas');
+        const textFillCtx = textFillCnv.getContext('2d', { willReadFrequently: true });
+
+        function render() {
+            if (!state.text) { ctx.clearRect(0, 0, canvas.width, canvas.height); return; }
+
+            // 強制 DOM 預染機制 (解決 Canvas 初始化找無字體就崩潰回預設字的問題)
+            let preRenderDiv = document.getElementById('font-pre-render-fix');
+            if (!preRenderDiv) {
+                preRenderDiv = document.createElement('div');
+                preRenderDiv.id = 'font-pre-render-fix';
+                preRenderDiv.style.position = 'absolute';
+                preRenderDiv.style.opacity = '0.01';
+                preRenderDiv.style.pointerEvents = 'none';
+                preRenderDiv.style.zIndex = '-999';
+                preRenderDiv.style.whiteSpace = 'pre-wrap';
+                document.body.appendChild(preRenderDiv);
+            }
+            preRenderDiv.style.fontFamily = `"${state.fontFamily}"`;
+            preRenderDiv.style.fontWeight = state.fontWeight;
+            preRenderDiv.style.fontSize = state.fontSize + 'px';
+            preRenderDiv.innerText = state.text;
+            
+            const lines = state.text.split('\n');
+            let linesData = [];
+            let maxLineWidth = 0;
+            let totalHeight = 0;
+
+            const isEmoji = (char) => /\p{Extended_Pictographic}/u.test(char);
+            let globalCharIndex = 0;
+
+            // 1. 測量排版尺寸
+            for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+                const chars = [...lines[lineIndex]];
+                let lineWidth = 0;
+                let maxHeight = 0;
+                let lineChars = [];
+                
+                for (let i = 0; i < chars.length; i++) {
+                    let cFontSize = state.fontSize;
+                    if (state.charStyles && state.charStyles[globalCharIndex] && state.charStyles[globalCharIndex].fontSize !== undefined) {
+                        cFontSize = state.charStyles[globalCharIndex].fontSize;
+                    }
+
+                    const cFontStr = `${state.fontWeight} ${cFontSize}px "${state.fontFamily}", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+                    ctx.font = cFontStr;
+                    ctx.textBaseline = 'bottom';
+                    
+                    let m = ctx.measureText(chars[i]);
+                    
+                    // 取得該字元之實際墨水邊界 (actualBoundingBox)
+                    const rawAscent = (m.actualBoundingBoxAscent !== undefined && m.actualBoundingBoxAscent > 0) ? m.actualBoundingBoxAscent : cFontSize * 0.88;
+                    const rawDescent = (m.actualBoundingBoxDescent !== undefined) ? m.actualBoundingBoxDescent : cFontSize * 0.14;
+                    const inkHeight = rawAscent + Math.max(0, rawDescent);
+                    const isFlatOrFloating = (inkHeight < cFontSize * 0.45) || (rawDescent < -cFontSize * 0.1);
+                    const defaultDescent = cFontSize * 0.14;
+
+                    // 實際底部基準：一般字元以實際墨水底部 (rawDescent) 為對齊平齊標準；扁平中置符號以標準字級底線為準
+                    let actualDescent = defaultDescent;
+                    if (!isFlatOrFloating && rawDescent >= 0) {
+                        actualDescent = rawDescent;
+                    }
+
+                    lineChars.push({
+                        char: chars[i],
+                        fontStr: cFontStr,
+                        fontSize: cFontSize,
+                        width: m.width,
+                        actualAscent: rawAscent,
+                        actualDescent: actualDescent,
+                        ascent: Math.max(rawAscent, cFontSize * 0.95),  // 畫布內部漸層與繪製安全高度
+                        descent: Math.max(rawDescent, defaultDescent, cFontSize * 0.25), // 畫布內部安全底部深度
+                        isEmoji: isEmoji(chars[i]),
+                        style: mergeDeep(state, state.charStyles[globalCharIndex] || {})
+                    });
+                    
+                    lineWidth += m.width;
+                    if (i < chars.length - 1) lineWidth += state.letterSpacing;
+                    maxHeight = Math.max(maxHeight, cFontSize, rawAscent + actualDescent);
+
+                    globalCharIndex += chars[i].length;
+                }
+                
+                if (maxHeight === 0) maxHeight = state.fontSize;
+                maxLineWidth = Math.max(maxLineWidth, lineWidth);
+                linesData.push({ chars: lineChars, lineWidth, maxHeight });
+                
+                if (lineIndex < lines.length - 1) globalCharIndex += 1;
+            }
+
+            for (let i = 0; i < linesData.length; i++) {
+                totalHeight += linesData[i].maxHeight;
+                if (i < linesData.length - 1) totalHeight += state.lineSpacing;
+            }
+            
+            // 2. 計算全域安全邊距
+            let absMaxOuter = 0, absMaxInner = 0, absShadow = 0, absDrop = 0, absGlow = 0, absOffsetY = 0;
+            linesData.forEach(l => l.chars.forEach(c => {
+                if(c.style.outerStrokes.length) absMaxOuter = Math.max(absMaxOuter, ...c.style.outerStrokes.map(x=>x.width));
+                if(c.style.strokes.length) absMaxInner = Math.max(absMaxInner, ...c.style.strokes.map(x=>x.width));
+                if(c.style.shadow.enabled) absShadow = Math.max(absShadow, Math.abs(c.style.shadow.offsetX), Math.abs(c.style.shadow.offsetY));
+                if(c.style.dropShadow.enabled) absDrop = Math.max(absDrop, Math.max(Math.abs(c.style.dropShadow.offsetX), Math.abs(c.style.dropShadow.offsetY)) + c.style.dropShadow.blur + absShadow);
+                if(c.style.glow.enabled) absGlow = Math.max(absGlow, c.style.glow.blur);
+                const cOffY = (c.style.offsetY !== undefined) ? c.style.offsetY : (state.offsetY || 0);
+                absOffsetY = Math.max(absOffsetY, Math.abs(cOffY));
+            }));
+
+            const safePadding = Math.max(absMaxOuter, absMaxInner, absShadow, absDrop, absGlow, absOffsetY) + 50; 
+            const rawWidth = maxLineWidth + safePadding * 2;
+            const rawHeight = totalHeight + safePadding * 2;
+
+            canvas.width = (rawWidth * Math.max(1, state.scaleX)) + safePadding * 2;
+            canvas.height = (rawHeight * Math.max(1, state.scaleY)) + safePadding * 2;
+            
+            const cx = rawWidth / 2 - (state.shadow.enabled ? state.shadow.offsetX / 2 : 0);
+            const cy = rawHeight / 2 - (state.shadow.enabled ? state.shadow.offsetY / 2 : 0);
+
+            // 3. 計算字元絕對座標
+            let currentY = cy - totalHeight / 2;
+            for (let line of linesData) {
+                let currentX = cx - line.lineWidth / 2;
+                if (state.textAlign === 'left') currentX = cx - maxLineWidth / 2;
+                else if (state.textAlign === 'right') currentX = cx + maxLineWidth / 2 - line.lineWidth;
+
+                const lineBottomY = currentY + line.maxHeight;
+
+                for (let c of line.chars) {
+                    c.x = currentX + c.width / 2;
+                    c.y = lineBottomY;
+                    const charOffsetY = (c.style.offsetY !== undefined) ? c.style.offsetY : (state.offsetY || 0);
+                    c.baselineY = lineBottomY - c.actualDescent - charOffsetY;
+                    currentX += c.width + state.letterSpacing;
+                }
+                currentY += line.maxHeight + state.lineSpacing;
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            
+            // 套用全域姿態變形
+            ctx.translate(canvas.width/2, canvas.height/2);
+            ctx.scale(state.scaleX, state.scaleY);
+            ctx.rotate(state.rotate * Math.PI / 180);
+            ctx.transform(1, Math.tan(state.skewY * Math.PI / 180), Math.tan(state.skewX * Math.PI / 180), 1, 0, 0);
+            ctx.translate(-rawWidth/2, -rawHeight/2);
+            
+            // 4. 單字元獨立渲染循環
+            for (let line of linesData) {
+                for (let c of line.chars) {
+                    const s = c.style;
+                    
+                    charCnv.width = Math.ceil(c.width + safePadding * 2);
+                    charCnv.height = Math.ceil(c.ascent + c.descent + safePadding * 2);
+                    
+                    const lcX = charCnv.width / 2;
+                    const drawY = safePadding + c.ascent; // 以 Baseline 對齊
+                    
+                    charCtx.clearRect(0, 0, charCnv.width, charCnv.height);
+                    charCtx.textAlign = 'center'; 
+                    charCtx.textBaseline = 'alphabetic'; // 改回字母基準線，避免中英文上下浮動
+                    charCtx.lineJoin = 'round'; 
+                    charCtx.miterLimit = 2;
+                    charCtx.font = c.fontStr;
+
+                    let mxOuter = s.outerStrokes.length ? Math.max(...s.outerStrokes.map(x=>x.width)) : 0;
+                    let mxInner = s.strokes.length ? Math.max(...s.strokes.map(x=>x.width)) : 0;
+                    let sortedOuter = s.outerStrokes && s.outerStrokes.length > 0 ? [...s.outerStrokes].sort((a,b)=>b.width-a.width) : [];
+
+                    // Layer 0: Drop Shadow
+                    if (s.dropShadow.enabled) {
+                        charCtx.save();
+                        charCtx.shadowColor = s.dropShadow.color;
+                        charCtx.shadowBlur = s.dropShadow.blur;
+                        charCtx.shadowOffsetX = s.dropShadow.offsetX;
+                        charCtx.shadowOffsetY = s.dropShadow.offsetY;
+                        charCtx.fillStyle = "rgba(0,0,0,1)";
+                        charCtx.strokeStyle = "rgba(0,0,0,1)";
+                        
+                        charCtx.lineWidth = Math.max(mxOuter, mxInner);
+                        let sx = s.shadow.enabled ? s.shadow.offsetX : 0;
+                        let sy = s.shadow.enabled ? s.shadow.offsetY : 0;
+                        
+                        if (charCtx.lineWidth > 0) charCtx.strokeText(c.char, lcX + sx, drawY + sy);
+                        charCtx.fillText(c.char, lcX + sx, drawY + sy);
+                        charCtx.restore();
+                    }
+
+                    // Layer 1: Glow
+                    if (s.glow.enabled && s.glow.blur > 0) {
+                        charCtx.save();
+                        let gOp = s.glow.opacity !== undefined ? s.glow.opacity : 100;
+                        charCtx.shadowColor = hexToRgba(s.glow.color, gOp);
+                        charCtx.shadowBlur = s.glow.blur;
+                        charCtx.shadowOffsetX = 0; charCtx.shadowOffsetY = 0;
+                        charCtx.lineWidth = Math.max(mxOuter, mxInner) || 2;
+                        charCtx.strokeStyle = hexToRgba(s.glow.color, gOp);
+                        charCtx.strokeText(c.char, lcX, drawY);
+                        charCtx.strokeText(c.char, lcX, drawY);
+                        charCtx.restore();
+                    }
+
+                    // Layer 2.1: 整體外框 (絕對底層，不受立體厚度遮擋)
+                    let maxSteps = (s.shadow.enabled && s.shadow.extruded) ? Math.max(Math.abs(s.shadow.offsetX), Math.abs(s.shadow.offsetY)) : 0;
+                    
+                    for (let st of sortedOuter) {
+                        if (s.shadow.enabled && s.shadow.extruded) {
+                            for(let step = maxSteps; step >= 0; step -= 1) {
+                                let ratio = maxSteps === 0 ? 0 : step / maxSteps;
+                                let dx = s.shadow.offsetX * ratio;
+                                let dy = s.shadow.offsetY * ratio;
+                                
+                                charCtx.fillStyle = st.color; charCtx.strokeStyle = st.color; charCtx.lineWidth = st.width;
+                                if (st.width > 0) charCtx.strokeText(c.char, lcX + dx, drawY + dy);
+                                charCtx.fillText(c.char, lcX + dx, drawY + dy);
+                            }
+                        } else {
+                            let draws = [];
+                            if (s.shadow.enabled) draws.push({x: s.shadow.offsetX, y: s.shadow.offsetY});
+                            draws.push({x: 0, y: 0});
+                            
+                            for (let d of draws) {
+                                charCtx.fillStyle = st.color; charCtx.strokeStyle = st.color; charCtx.lineWidth = st.width;
+                                if (st.width > 0) charCtx.strokeText(c.char, lcX + d.x, drawY + d.y);
+                                charCtx.fillText(c.char, lcX + d.x, drawY + d.y);
+                            }
+                        }
+                    }
+
+                    // Layer 2.2: 立體厚度陰影 (蓋在整體外框之上)
+                    if (s.shadow.enabled) {
+                        if (s.shadow.extruded) {
+                            for(let step = maxSteps; step >= 0; step -= 1) {
+                                let ratio = maxSteps === 0 ? 0 : step / maxSteps;
+                                let dx = s.shadow.offsetX * ratio;
+                                let dy = s.shadow.offsetY * ratio;
+                                
+                                charCtx.fillStyle = s.shadow.color; charCtx.strokeStyle = s.shadow.color; charCtx.lineWidth = mxInner;
+                                if (mxInner > 0) charCtx.strokeText(c.char, lcX + dx, drawY + dy);
+                                charCtx.fillText(c.char, lcX + dx, drawY + dy);
+                            }
+                        } else {
+                            let draws = [{x: s.shadow.offsetX, y: s.shadow.offsetY}, {x: 0, y: 0}];
+                            for (let d of draws) {
+                                charCtx.fillStyle = s.shadow.color; charCtx.strokeStyle = s.shadow.color; charCtx.lineWidth = mxInner;
+                                if (mxInner > 0) charCtx.strokeText(c.char, lcX + d.x, drawY + d.y);
+                                charCtx.fillText(c.char, lcX + d.x, drawY + d.y);
+                            }
+                        }
+                    }
+
+                    // Layer 3: 內層外框
+                    let sortedStrokes = [...s.strokes].sort((a,b)=>b.width-a.width);
+                    for (let st of sortedStrokes) {
+                        charCtx.lineWidth = st.width; charCtx.strokeStyle = st.color;
+                        charCtx.strokeText(c.char, lcX, drawY);
+                    }
+
+                    // Layer 4 & 5: 漸層填色與內陰影 (圖層隔離處理)
+                    if (!c.isEmoji) {
+                        // 在獨立畫布上繪製填色，避免 source-atop 覆蓋掉原有的外框與立體厚度
+                        textFillCnv.width = charCnv.width;
+                        textFillCnv.height = charCnv.height;
+                        textFillCtx.clearRect(0, 0, textFillCnv.width, textFillCnv.height);
+                        textFillCtx.textAlign = 'center'; 
+                        textFillCtx.textBaseline = 'alphabetic';
+                        textFillCtx.font = c.fontStr;
+
+                        if (s.fill.type === 'solid') {
+                            textFillCtx.fillStyle = s.fill.color1;
+                            textFillCtx.fillText(c.char, lcX, drawY);
+                        } else {
+                            const angleRad = (s.fill.angle - 90) * Math.PI / 180;
+                            // 統一依據標準字高，讓一字這類扁平字元的漸層也能正常展開
+                            let charTop = drawY - c.ascent; 
+                            let charBottom = drawY + c.descent;
+                            let charH = charBottom - charTop; 
+                            let radius = Math.abs(c.width/2 * Math.cos(angleRad)) + Math.abs(charH/2 * Math.sin(angleRad));
+                            let cCenterY = drawY - c.ascent + charH / 2;
+
+                            let x1 = lcX - radius * Math.cos(angleRad); let y1 = cCenterY - radius * Math.sin(angleRad);
+                            let x2 = lcX + radius * Math.cos(angleRad); let y2 = cCenterY + radius * Math.sin(angleRad);
+                            let gradient = textFillCtx.createLinearGradient(x1, y1, x2, y2);
+                            
+                            const clamp = (v) => Math.max(0, Math.min(1, v));
+                            let sm = s.fill.smoothness / 100;
+
+                            if (s.fill.type === 'gradient5') {
+                                let p1 = s.fill.pos1 / 100; 
+                                let p2 = s.fill.pos2 / 100; 
+                                let p3 = (s.fill.pos3 !== undefined ? s.fill.pos3 : 80) / 100; 
+                                let p4 = (s.fill.pos4 !== undefined ? s.fill.pos4 : 100) / 100;
+                                
+                                let arr = [p1, p2, p3, p4].sort((a,b)=>a-b);
+                                p1=arr[0]; p2=arr[1]; p3=arr[2]; p4=arr[3];
+
+                                let blur1 = sm * Math.min(p1, (p2 - p1) / 2); 
+                                let blur2 = sm * Math.min((p2 - p1) / 2, (p3 - p2) / 2);
+                                let blur3 = sm * Math.min((p3 - p2) / 2, (p4 - p3) / 2);
+                                let blur4 = sm * Math.min((p4 - p3) / 2, 1 - p4);
+
+                                let c1 = s.fill.color1;
+                                let c2 = s.fill.colorMid;
+                                let c3 = s.fill.color3 || '#9333ea';
+                                let c4 = s.fill.color4 || '#3b82f6';
+                                let c5 = s.fill.color2;
+
+                                gradient.addColorStop(0, c1); 
+                                gradient.addColorStop(clamp(p1 - blur1), c1);
+                                gradient.addColorStop(clamp(p1 + blur1), c2); 
+                                gradient.addColorStop(clamp(p2 - blur2), c2);
+                                gradient.addColorStop(clamp(p2 + blur2), c3); 
+                                gradient.addColorStop(clamp(p3 - blur3), c3);
+                                gradient.addColorStop(clamp(p3 + blur3), c4); 
+                                gradient.addColorStop(clamp(p4 - blur4), c4);
+                                gradient.addColorStop(clamp(p4 + blur4), c5); 
+                                gradient.addColorStop(1, c5);
+                            } else {
+                                let p1 = s.fill.pos1 / 100; let p2 = s.fill.pos2 / 100; if (p1 > p2) [p1, p2] = [p2, p1];
+                                let blur1 = sm * Math.min(p1, (p2 - p1) / 2); let blur2 = sm * Math.min((p2 - p1) / 2, 1 - p2);
+
+                                gradient.addColorStop(0, s.fill.color1); gradient.addColorStop(clamp(p1 - blur1), s.fill.color1);
+                                gradient.addColorStop(clamp(p1 + blur1), s.fill.colorMid); gradient.addColorStop(clamp(p2 - blur2), s.fill.colorMid);
+                                gradient.addColorStop(clamp(p2 + blur2), s.fill.color2); gradient.addColorStop(1, s.fill.color2);
+                            }
+
+                            textFillCtx.fillStyle = gradient; 
+                            textFillCtx.fillText(c.char, lcX, drawY);
+                        }
+
+                        // 獨立繪製內陰影，僅對 textFillCtx 進行 source-atop，絕對不會污染到外框圖層
+                        if (s.innerShadow && s.innerShadow.enabled) {
+                            textFillCtx.save(); 
+                            textFillCtx.globalCompositeOperation = 'source-atop';
+                            
+                            bufferCnv.width = charCnv.width; 
+                            bufferCnv.height = charCnv.height;
+                            bufferCtx.fillStyle = '#000000'; 
+                            bufferCtx.fillRect(0, 0, bufferCnv.width, bufferCnv.height); 
+                            bufferCtx.globalCompositeOperation = 'destination-out';
+                            bufferCtx.font = c.fontStr; 
+                            bufferCtx.textAlign = 'center'; 
+                            bufferCtx.textBaseline = 'alphabetic';
+                            bufferCtx.fillText(c.char, lcX, drawY); 
+                            
+                            textFillCtx.shadowColor = hexToRgba(s.innerShadow.color, s.innerShadow.opacity);
+                            textFillCtx.shadowBlur = s.innerShadow.blur; 
+                            textFillCtx.shadowOffsetX = s.innerShadow.offsetX; 
+                            textFillCtx.shadowOffsetY = s.innerShadow.offsetY;
+                            textFillCtx.drawImage(bufferCnv, 0, 0); 
+                            textFillCtx.restore();
+                        }
+                        
+                        // 最後把完美的文字+內陰影圖層，正常疊加到包含外框的 charCtx 上
+                        charCtx.drawImage(textFillCnv, 0, 0);
+
+                    } else {
+                        // Layer 6: Emoji Override
+                        charCtx.fillText(c.char, lcX, drawY);
+                    }
+
+                    // 將單一字元印回主畫布（以文字實際大小底部精確平齊）
+                    ctx.drawImage(charCnv, c.x - lcX, c.baselineY - drawY);
+                }
+            }
+
+            ctx.restore();
+        }
+
+        let outDirHandle = null;
+        if (!window.showDirectoryPicker) document.getElementById('setDirBtn').style.display = 'none';
+
+        let handleDB;
+        try {
+            const handleReq = indexedDB.open("TitleProHandleDB", 1);
+            handleReq.onupgradeneeded = e => { 
+                handleDB = e.target.result; 
+                handleDB.createObjectStore("handles"); 
+            };
+            handleReq.onsuccess = e => { 
+                handleDB = e.target.result; 
+                loadSavedDirHandle(); 
+            };
+            handleReq.onerror = () => { console.warn("瀏覽器安全限制: 直出資料夾記憶功能停用。"); };
+        } catch (e) {}
+
+        function loadSavedDirHandle() {
+            if(!handleDB) return;
+            try {
+                const tx = handleDB.transaction("handles", "readonly");
+                const req = tx.objectStore("handles").get("outDirHandle");
+                req.onsuccess = () => {
+                    if (req.result) {
+                        outDirHandle = req.result;
+                        document.getElementById('dirPathText').innerText = `直出至: ${outDirHandle.name}`;
+                    }
+                };
+            } catch (e) {}
+        }
+
+        async function setOutputDirectory() {
+            try {
+                outDirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+                if (handleDB) {
+                    try {
+                        const tx = handleDB.transaction("handles", "readwrite");
+                        tx.objectStore("handles").put(outDirHandle, "outDirHandle");
+                    } catch (dbErr) {}
+                }
+                document.getElementById('dirPathText').innerText = `直出至: ${outDirHandle.name}`;
+                showToast(`已綁定並記憶直出資料夾: ${outDirHandle.name}`, "success");
+            } catch (err) {}
+        }
+
+        async function verifyPermission(fileHandle) {
+            try {
+                if ((await fileHandle.queryPermission({ mode: 'readwrite' })) === 'granted') return true;
+                if ((await fileHandle.requestPermission({ mode: 'readwrite' })) === 'granted') return true;
+            } catch (e) {}
+            return false;
+        }
+
+        window.exportPerfectPNG = async function() {
+            if (!state.text) return;
+            const cropCanvas = getAutoCroppedCanvas();
+            if (!cropCanvas) return;
+            
+            const safeText = state.text.replace(/[\n\r/\\?%*:|"<>]/g, '_').substring(0, 15);
+            const timestamp = new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 14); 
+            const exportFileName = `TitlePro_${safeText}_${timestamp}.png`;
+
+            try {
+                const blob = await new Promise(resolve => cropCanvas.toBlob(resolve, 'image/png'));
+                if (outDirHandle) {
+                    try {
+                        const hasPerm = await verifyPermission(outDirHandle);
+                        if (hasPerm) {
+                            const fileHandle = await outDirHandle.getFileHandle(exportFileName, { create: true });
+                            const writable = await fileHandle.createWritable();
+                            await writable.write(blob); 
+                            await writable.close();
+                            showToast(`已無感直出: ${exportFileName}`, "success");
+                            return; 
+                        } else { 
+                            showToast("資料夾授權失敗，改為一般存檔", "error"); 
+                        }
+                    } catch (dirErr) { 
+                        showToast("直出失敗，嘗試一般存檔", "error"); 
+                    }
+                }
+                
+                if (window.showSaveFilePicker) {
+                    const handle = await window.showSaveFilePicker({ suggestedName: exportFileName, types: [{ accept: { 'image/png': ['.png'] } }] });
+                    const writable = await handle.createWritable();
+                    await writable.write(blob); 
+                    await writable.close();
+                    showToast("已成功儲存！", "success");
+                } else {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement("a"); link.download = exportFileName; link.href = url; link.click(); URL.revokeObjectURL(url);
+                    showToast("已下載 PNG！", "success");
+                }
+            } catch (err) {
+                if (err.name !== 'AbortError') showToast("儲存失敗，請重試", "error");
+            }
+        }
+
+        const refContainer = document.getElementById('refContainer');
+        const refImage = document.getElementById('refImage');
+        const refPlaceholder = document.getElementById('refPlaceholder');
+        let refScale = 1;
+        let isDraggingRef = false;
+        let startRefX = 0, startRefY = 0, scrollLeftRef = 0, scrollTopRef = 0;
+
+        window.addEventListener('paste', (e) => {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let index in items) {
+                const item = items[index];
+                if (item.kind === 'file' && item.type.includes('image')) {
+                    const blob = item.getAsFile();
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        refImage.src = event.target.result;
+                        refImage.classList.remove('hidden'); refPlaceholder.classList.add('hidden');
+                        refScale = 1; updateRefTransform();
+                        showToast("已載入參考截圖！", "success");
+                    };
+                    reader.readAsDataURL(blob);
+                    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') e.preventDefault();
+                    break;
+                }
+            }
+        });
+
+        window.clearRefImage = function() {
+            refImage.src = ''; refImage.classList.add('hidden'); refPlaceholder.classList.remove('hidden');
+            refScale = 1; updateRefTransform();
+        };
+        window.refZoomIn = function() { refScale += 0.2; updateRefTransform(); };
+        window.refZoomOut = function() { refScale = Math.max(0.2, refScale - 0.2); updateRefTransform(); };
+        function updateRefTransform() { refImage.style.transform = `scale(${refScale})`; }
+
+        refContainer.addEventListener('wheel', (e) => {
+            if (!refImage.src || refImage.classList.contains('hidden')) return;
+            if (e.ctrlKey || e.metaKey) { e.preventDefault(); if (e.deltaY > 0) refZoomOut(); else refZoomIn(); }
+        });
+
+        refContainer.addEventListener('mousedown', (e) => {
+            if (eyedropperActiveTarget) return;
+            if (!refImage.src || refImage.classList.contains('hidden')) return;
+            isDraggingRef = true;
+            refImage.classList.remove('cursor-grab'); refImage.classList.add('cursor-grabbing');
+            startRefX = e.pageX - refContainer.offsetLeft; startRefY = e.pageY - refContainer.offsetTop;
+            scrollLeftRef = refContainer.scrollLeft; scrollTopRef = refContainer.scrollTop;
+        });
+
+        refContainer.addEventListener('mouseleave', () => { isDraggingRef = false; refImage.classList.add('cursor-grab'); refImage.classList.remove('cursor-grabbing'); });
+        refContainer.addEventListener('mouseup', () => { isDraggingRef = false; refImage.classList.add('cursor-grab'); refImage.classList.remove('cursor-grabbing'); });
+        
+        refContainer.addEventListener('mousemove', (e) => {
+            if (!isDraggingRef || eyedropperActiveTarget) return;
+            e.preventDefault();
+            const x = e.pageX - refContainer.offsetLeft; const y = e.pageY - refContainer.offsetTop;
+            const walkX = (x - startRefX) * 1.5; const walkY = (y - startRefY) * 1.5;
+            refContainer.scrollLeft = scrollLeftRef - walkX; refContainer.scrollTop = scrollTopRef - walkY;
+        });
+
+        // ============================================================
+        // 統一十六進位制 HEX 選色器 + 雙模式吸管 (Native EyeDropper + 畫布/參考圖放大鏡吸色)
+        // ============================================================
+        const DEFAULT_RECENT_COLORS = ['#FFFFFF', '#000000', '#FFD700', '#FF3B30', '#FF9F0A', '#30D158', '#0A84FF', '#AF52DE', '#FF2D55'];
+        let recentColors = (() => {
+            try {
+                const parsed = JSON.parse(getSafeLocalStorage('titleProRecentColors', 'null'));
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed.slice(0, 9);
+            } catch (e) {}
+            return [...DEFAULT_RECENT_COLORS];
+        })();
+
+        function normalizeHex(raw) {
+            if (typeof raw !== 'string') return null;
+            let s = raw.trim().replace(/^#/, '');
+            if (/^[0-9a-fA-F]{3}$/.test(s)) {
+                s = s[0] + s[0] + s[1] + s[1] + s[2] + s[2];
+            }
+            if (!/^[0-9a-fA-F]{6}$/.test(s)) return null;
+            return '#' + s.toLowerCase();
+        }
+
+        function rgbToHex(r, g, b) {
+            const toHex = (n) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, '0');
+            return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+        }
+
+        function hexToHsv(hex) {
+            const norm = normalizeHex(hex) || '#ffffff';
+            const r = parseInt(norm.slice(1, 3), 16) / 255;
+            const g = parseInt(norm.slice(3, 5), 16) / 255;
+            const b = parseInt(norm.slice(5, 7), 16) / 255;
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            const d = max - min;
+            let h = 0;
+            if (d !== 0) {
+                if (max === r) h = ((g - b) / d) % 6;
+                else if (max === g) h = (b - r) / d + 2;
+                else h = (r - g) / d + 4;
+                h *= 60;
+                if (h < 0) h += 360;
+            }
+            const s = max === 0 ? 0 : d / max;
+            const v = max;
+            return { h, s, v };
+        }
+
+        function hsvToHex(h, s, v) {
+            const c = v * s;
+            const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+            const m = v - c;
+            let r = 0, g = 0, b = 0;
+            if (h >= 0 && h < 60) { r = c; g = x; b = 0; }
+            else if (h < 120) { r = x; g = c; b = 0; }
+            else if (h < 180) { r = 0; g = c; b = x; }
+            else if (h < 240) { r = 0; g = x; b = c; }
+            else if (h < 300) { r = x; g = 0; b = c; }
+            else { r = c; g = 0; b = x; }
+            return rgbToHex((r + m) * 255, (g + m) * 255, (b + m) * 255);
+        }
+
+        function recordRecentColor(hex) {
+            const norm = normalizeHex(hex);
+            if (!norm) return;
+            const upper = norm.toUpperCase();
+            recentColors = [upper, ...recentColors.filter(c => c.toUpperCase() !== upper)].slice(0, 9);
+            setSafeLocalStorage('titleProRecentColors', JSON.stringify(recentColors));
+            renderHexRecentSwatches();
+        }
+
+        function applyColorToInput(inputEl, hex, recordRecent = false) {
+            if (!inputEl) return;
+            const norm = normalizeHex(hex);
+            if (!norm) return;
+            inputEl.value = norm;
+            syncColorControlUI(inputEl);
+            inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+            if (recordRecent) recordRecentColor(norm);
+        }
+
+        function syncColorControlUI(inputEl) {
+            if (!inputEl || !inputEl._hexUI) return;
+            const norm = normalizeHex(inputEl.value) || '#ffffff';
+            const upper = norm.toUpperCase();
+            inputEl._hexUI.swatch.style.backgroundColor = norm;
+            if (document.activeElement !== inputEl._hexUI.textInput) {
+                inputEl._hexUI.textInput.value = upper;
+            }
+        }
+
+        function syncAllColorControls() {
+            document.querySelectorAll('input[type="color"][data-hex-upgraded="1"]').forEach(syncColorControlUI);
+            if (activePopoverInput && !hexPopoverEl.classList.contains('hidden')) {
+                const hsv = hexToHsv(activePopoverInput.value);
+                popoverState.h = hsv.h;
+                popoverState.s = hsv.s;
+                popoverState.v = hsv.v;
+                renderPopoverVisuals(false);
+            }
+        }
+
+        function initHexColorControls(root = document) {
+            const inputs = root.querySelectorAll('input[type="color"]');
+            inputs.forEach(inputEl => {
+                if (inputEl.dataset.hexUpgraded === '1') {
+                    syncColorControlUI(inputEl);
+                    return;
+                }
+                inputEl.dataset.hexUpgraded = '1';
+                inputEl.classList.add('hidden');
+
+                const wrap = document.createElement('div');
+                wrap.className = 'hex-color-control' + (inputEl.dataset.hexSurface === 'dark' ? ' surface-dark' : '');
+
+                const swatch = document.createElement('button');
+                swatch.type = 'button';
+                swatch.className = 'hex-swatch-btn';
+                swatch.title = '開啟十六進位色盤 (HEX)';
+
+                const textInput = document.createElement('input');
+                textInput.type = 'text';
+                textInput.maxLength = 7;
+                textInput.spellcheck = false;
+                textInput.autocomplete = 'off';
+                textInput.className = 'hex-text-input';
+                textInput.placeholder = '#FFFFFF';
+                textInput.title = '輸入或貼上 16 進位色碼 (例如 #E5D4FF)';
+
+                const dropperBtn = document.createElement('button');
+                dropperBtn.type = 'button';
+                dropperBtn.className = 'hex-eyedropper-btn';
+                dropperBtn.title = '吸取顏色';
+                dropperBtn.innerHTML = '<i class="fa-solid fa-eye-dropper text-[11px]"></i>';
+
+                wrap.appendChild(swatch);
+                wrap.appendChild(textInput);
+                wrap.appendChild(dropperBtn);
+                inputEl.parentNode.insertBefore(wrap, inputEl.nextSibling);
+
+                inputEl._hexUI = { wrap, swatch, textInput, dropperBtn };
+                syncColorControlUI(inputEl);
+
+                swatch.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (activePopoverInput === inputEl && !hexPopoverEl.classList.contains('hidden')) {
+                        closeHexPopover();
+                    } else {
+                        openHexPopover(inputEl, wrap);
+                    }
+                });
+
+                textInput.addEventListener('focus', () => {
+                    textInput.select();
+                });
+
+                textInput.addEventListener('input', () => {
+                    let raw = textInput.value.trim();
+                    if (raw && !raw.startsWith('#') && /^[0-9a-fA-F]{6}$/.test(raw)) {
+                        raw = '#' + raw;
+                    }
+                    if (/^#[0-9a-fA-F]{6}$/.test(raw)) {
+                        const norm = raw.toLowerCase();
+                        inputEl.value = norm;
+                        swatch.style.backgroundColor = norm;
+                        inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+                        if (activePopoverInput === inputEl && !hexPopoverEl.classList.contains('hidden')) {
+                            const hsv = hexToHsv(norm);
+                            popoverState.h = hsv.h; popoverState.s = hsv.s; popoverState.v = hsv.v;
+                            renderPopoverVisuals(false);
+                        }
+                    }
+                });
+
+                const commitTextHex = () => {
+                    const norm = normalizeHex(textInput.value);
+                    if (norm) {
+                        applyColorToInput(inputEl, norm, true);
+                        textInput.value = norm.toUpperCase();
+                    } else {
+                        const fallback = normalizeHex(inputEl.value) || '#ffffff';
+                        textInput.value = fallback.toUpperCase();
+                    }
+                };
+
+                textInput.addEventListener('blur', commitTextHex);
+                textInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        commitTextHex();
+                        textInput.blur();
+                    } else if (e.key === 'Escape') {
+                        textInput.value = (normalizeHex(inputEl.value) || '#ffffff').toUpperCase();
+                        textInput.blur();
+                    }
+                });
+
+                dropperBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    closeHexPopover();
+                    triggerEyedropper(inputEl);
+                });
+            });
+        }
+
+        // --- 浮動 HEX 選色盤邏輯 ---
+        const hexPopoverEl = document.getElementById('hexColorPopover');
+        const hexSvWrap = document.getElementById('hexSvWrap');
+        const hexSvCanvas = document.getElementById('hexSvCanvas');
+        const hexSvCtx = hexSvCanvas.getContext('2d');
+        const hexSvCursor = document.getElementById('hexSvCursor');
+        const hexHueBar = document.getElementById('hexHueBar');
+        const hexHueCursor = document.getElementById('hexHueCursor');
+        const hexPopoverPreview = document.getElementById('hexPopoverPreview');
+        const hexPopoverInput = document.getElementById('hexPopoverInput');
+        const hexPopoverCopyBtn = document.getElementById('hexPopoverCopyBtn');
+        const hexPopoverDropperBtn = document.getElementById('hexPopoverDropperBtn');
+        const hexRecentSwatchesEl = document.getElementById('hexRecentSwatches');
+
+        let activePopoverInput = null;
+        let popoverState = { h: 0, s: 1, v: 1 };
+        let draggingSv = false;
+        let draggingHue = false;
+
+        function renderHexRecentSwatches() {
+            if (!hexRecentSwatchesEl) return;
+            hexRecentSwatchesEl.innerHTML = '';
+            recentColors.forEach(hex => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'w-5 h-5 rounded-md border border-white/20 hover:scale-110 transition-transform cursor-pointer';
+                btn.style.backgroundColor = hex;
+                btn.title = hex.toUpperCase();
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (!activePopoverInput) return;
+                    const hsv = hexToHsv(hex);
+                    popoverState.h = hsv.h; popoverState.s = hsv.s; popoverState.v = hsv.v;
+                    applyColorToInput(activePopoverInput, hex, true);
+                    renderPopoverVisuals(true);
+                });
+                hexRecentSwatchesEl.appendChild(btn);
+            });
+        }
+
+        function drawSvSquare(hue) {
+            const w = hexSvCanvas.width;
+            const h = hexSvCanvas.height;
+            const pureHex = hsvToHex(hue, 1, 1);
+            hexSvCtx.fillStyle = pureHex;
+            hexSvCtx.fillRect(0, 0, w, h);
+
+            const whiteGrad = hexSvCtx.createLinearGradient(0, 0, w, 0);
+            whiteGrad.addColorStop(0, 'rgba(255,255,255,1)');
+            whiteGrad.addColorStop(1, 'rgba(255,255,255,0)');
+            hexSvCtx.fillStyle = whiteGrad;
+            hexSvCtx.fillRect(0, 0, w, h);
+
+            const blackGrad = hexSvCtx.createLinearGradient(0, 0, 0, h);
+            blackGrad.addColorStop(0, 'rgba(0,0,0,0)');
+            blackGrad.addColorStop(1, 'rgba(0,0,0,1)');
+            hexSvCtx.fillStyle = blackGrad;
+            hexSvCtx.fillRect(0, 0, w, h);
+        }
+
+        function renderPopoverVisuals(updateInputText = true) {
+            drawSvSquare(popoverState.h);
+            hexSvCursor.style.left = `${popoverState.s * 100}%`;
+            hexSvCursor.style.top = `${(1 - popoverState.v) * 100}%`;
+            hexHueCursor.style.left = `${(popoverState.h / 360) * 100}%`;
+            hexHueCursor.style.backgroundColor = hsvToHex(popoverState.h, 1, 1);
+
+            const currentHex = hsvToHex(popoverState.h, popoverState.s, popoverState.v);
+            hexPopoverPreview.style.backgroundColor = currentHex;
+            if (updateInputText && document.activeElement !== hexPopoverInput) {
+                hexPopoverInput.value = currentHex.toUpperCase();
+            }
+        }
+
+        function openHexPopover(inputEl, anchorEl) {
+            if (activePopoverInput && activePopoverInput._hexUI) {
+                activePopoverInput._hexUI.wrap.classList.remove('picker-open');
+            }
+            activePopoverInput = inputEl;
+            if (inputEl._hexUI) inputEl._hexUI.wrap.classList.add('picker-open');
+
+            const hsv = hexToHsv(inputEl.value || '#ffffff');
+            popoverState.h = hsv.h;
+            popoverState.s = hsv.s;
+            popoverState.v = hsv.v;
+            renderHexRecentSwatches();
+            renderPopoverVisuals(true);
+
+            hexPopoverEl.classList.remove('hidden');
+            const rect = anchorEl.getBoundingClientRect();
+            const popW = hexPopoverEl.offsetWidth || 250;
+            const popH = hexPopoverEl.offsetHeight || 280;
+            const margin = 10;
+
+            let left = rect.left;
+            if (left + popW > window.innerWidth - margin) {
+                left = window.innerWidth - popW - margin;
+            }
+            if (left < margin) left = margin;
+
+            let top = rect.bottom + 8;
+            if (top + popH > window.innerHeight - margin) {
+                top = rect.top - popH - 8;
+            }
+            if (top < margin) top = margin;
+
+            hexPopoverEl.style.left = `${Math.round(left)}px`;
+            hexPopoverEl.style.top = `${Math.round(top)}px`;
+        }
+
+        function closeHexPopover() {
+            if (activePopoverInput && activePopoverInput._hexUI) {
+                activePopoverInput._hexUI.wrap.classList.remove('picker-open');
+            }
+            hexPopoverEl.classList.add('hidden');
+            activePopoverInput = null;
+        }
+
+        function updateSvFromPointer(clientX, clientY) {
+            const rect = hexSvWrap.getBoundingClientRect();
+            const s = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+            const v = Math.max(0, Math.min(1, 1 - (clientY - rect.top) / rect.height));
+            popoverState.s = s;
+            popoverState.v = v;
+            const hex = hsvToHex(popoverState.h, popoverState.s, popoverState.v);
+            renderPopoverVisuals(true);
+            if (activePopoverInput) applyColorToInput(activePopoverInput, hex, false);
+        }
+
+        function updateHueFromPointer(clientX) {
+            const rect = hexHueBar.getBoundingClientRect();
+            const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+            popoverState.h = ratio * 360;
+            const hex = hsvToHex(popoverState.h, popoverState.s, popoverState.v);
+            renderPopoverVisuals(true);
+            if (activePopoverInput) applyColorToInput(activePopoverInput, hex, false);
+        }
+
+        hexSvWrap.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            draggingSv = true;
+            hexSvWrap.setPointerCapture(e.pointerId);
+            updateSvFromPointer(e.clientX, e.clientY);
+        });
+        hexSvWrap.addEventListener('pointermove', (e) => {
+            if (!draggingSv) return;
+            updateSvFromPointer(e.clientX, e.clientY);
+        });
+        hexSvWrap.addEventListener('pointerup', () => {
+            if (draggingSv) {
+                draggingSv = false;
+                if (activePopoverInput) recordRecentColor(activePopoverInput.value);
+            }
+        });
+
+        hexHueBar.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            draggingHue = true;
+            hexHueBar.setPointerCapture(e.pointerId);
+            updateHueFromPointer(e.clientX);
+        });
+        hexHueBar.addEventListener('pointermove', (e) => {
+            if (!draggingHue) return;
+            updateHueFromPointer(e.clientX);
+        });
+        hexHueBar.addEventListener('pointerup', () => {
+            if (draggingHue) {
+                draggingHue = false;
+                if (activePopoverInput) recordRecentColor(activePopoverInput.value);
+            }
+        });
+
+        hexPopoverInput.addEventListener('focus', () => hexPopoverInput.select());
+        hexPopoverInput.addEventListener('input', () => {
+            let raw = hexPopoverInput.value.trim();
+            if (raw && !raw.startsWith('#') && /^[0-9a-fA-F]{6}$/.test(raw)) raw = '#' + raw;
+            if (/^#[0-9a-fA-F]{6}$/.test(raw) && activePopoverInput) {
+                const norm = raw.toLowerCase();
+                const hsv = hexToHsv(norm);
+                popoverState.h = hsv.h; popoverState.s = hsv.s; popoverState.v = hsv.v;
+                applyColorToInput(activePopoverInput, norm, false);
+                renderPopoverVisuals(false);
+            }
+        });
+        const commitPopoverHex = () => {
+            if (!activePopoverInput) return;
+            const norm = normalizeHex(hexPopoverInput.value);
+            if (norm) {
+                const hsv = hexToHsv(norm);
+                popoverState.h = hsv.h; popoverState.s = hsv.s; popoverState.v = hsv.v;
+                applyColorToInput(activePopoverInput, norm, true);
+                hexPopoverInput.value = norm.toUpperCase();
+                renderPopoverVisuals(false);
+            } else {
+                hexPopoverInput.value = (normalizeHex(activePopoverInput.value) || '#ffffff').toUpperCase();
+            }
+        };
+        hexPopoverInput.addEventListener('blur', commitPopoverHex);
+        hexPopoverInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { commitPopoverHex(); hexPopoverInput.blur(); }
+            else if (e.key === 'Escape') { closeHexPopover(); }
+        });
+
+        hexPopoverCopyBtn.addEventListener('click', async () => {
+            const hex = (hexPopoverInput.value || '#FFFFFF').toUpperCase();
+            try {
+                await navigator.clipboard.writeText(hex);
+                showToast(`已複製色碼 ${hex}`, 'success');
+            } catch (e) {
+                hexPopoverInput.select();
+                document.execCommand('copy');
+                showToast(`已複製色碼 ${hex}`, 'success');
+            }
+        });
+
+        hexPopoverDropperBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const target = activePopoverInput;
+            closeHexPopover();
+            if (target) triggerEyedropper(target);
+        });
+
+        document.addEventListener('mousedown', (e) => {
+            if (hexPopoverEl.classList.contains('hidden')) return;
+            if (hexPopoverEl.contains(e.target)) return;
+            if (activePopoverInput && activePopoverInput._hexUI && activePopoverInput._hexUI.wrap.contains(e.target)) return;
+            closeHexPopover();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !hexPopoverEl.classList.contains('hidden')) {
+                closeHexPopover();
+            }
+        });
+
+        const leftPanelScroll = document.querySelector('aside .overflow-y-auto');
+        if (leftPanelScroll) {
+            leftPanelScroll.addEventListener('scroll', () => {
+                if (!hexPopoverEl.classList.contains('hidden')) closeHexPopover();
+            }, { passive: true });
+        }
+
+        // --- 雙模式吸管 (Native EyeDropper + 內建放大鏡取色 Fallback) ---
+        let eyedropperActiveTarget = null;
+        let refSampleCanvas = null;
+        let refSampleCtx = null;
+        let refSampleSrc = '';
+        const eyedropperBannerEl = document.getElementById('eyedropperBanner');
+        const eyedropperLoupeEl = document.getElementById('eyedropperLoupe');
+        const eyedropperLoupeCanvas = document.getElementById('eyedropperLoupeCanvas');
+        const eyedropperLoupeCtx = eyedropperLoupeCanvas.getContext('2d');
+        const eyedropperLoupeSwatch = document.getElementById('eyedropperLoupeSwatch');
+        const eyedropperLoupeHex = document.getElementById('eyedropperLoupeHex');
+
+        async function triggerEyedropper(targetInputEl) {
+            if (!targetInputEl) return;
+            if (eyedropperActiveTarget) cancelInAppEyedropper();
+
+            if (typeof window.EyeDropper === 'function') {
+                if (targetInputEl._hexUI) targetInputEl._hexUI.dropperBtn.classList.add('sampling');
+                try {
+                    const eyeDropper = new window.EyeDropper();
+                    const result = await eyeDropper.open();
+                    if (targetInputEl._hexUI) targetInputEl._hexUI.dropperBtn.classList.remove('sampling');
+                    if (result && result.sRGBHex) {
+                        const norm = normalizeHex(result.sRGBHex);
+                        if (norm) {
+                            applyColorToInput(targetInputEl, norm, true);
+                            showToast(`已吸取顏色 ${norm.toUpperCase()}`, 'success');
+                        }
+                    }
+                    return;
+                } catch (err) {
+                    if (targetInputEl._hexUI) targetInputEl._hexUI.dropperBtn.classList.remove('sampling');
+                    if (err && err.name === 'AbortError') return;
+                    // 若在 iframe 或瀏覽器策略中遭阻擋，無縫切換至內建吸色模式
+                }
+            }
+            startInAppEyedropper(targetInputEl);
+        }
+
+        function ensureRefSampleCanvas() {
+            if (!refImage || !refImage.src || refImage.classList.contains('hidden') || !refImage.naturalWidth) return null;
+            if (refSampleSrc !== refImage.src || !refSampleCanvas) {
+                refSampleCanvas = document.createElement('canvas');
+                refSampleCanvas.width = refImage.naturalWidth;
+                refSampleCanvas.height = refImage.naturalHeight;
+                refSampleCtx = refSampleCanvas.getContext('2d', { willReadFrequently: true });
+                refSampleCtx.drawImage(refImage, 0, 0);
+                refSampleSrc = refImage.src;
+            }
+            return refSampleCtx;
+        }
+
+        function getBgFallbackColor(clientX, clientY) {
+            const container = document.getElementById('previewCanvasContainer');
+            if (!container) return [44, 44, 48];
+            if (container.classList.contains('bg-solid-white')) return [255, 255, 255];
+            if (container.classList.contains('bg-solid-dark')) return [18, 18, 20];
+            const rect = container.getBoundingClientRect();
+            const gx = Math.floor((clientX - rect.left) / 10);
+            const gy = Math.floor((clientY - rect.top) / 10);
+            const isAlt = (gx + gy) % 2 === 1;
+            if (container.classList.contains('checkerboard-light')) {
+                return isAlt ? [235, 235, 240] : [216, 216, 222];
+            }
+            return isAlt ? [60, 60, 66] : [44, 44, 48];
+        }
+
+        function samplePixelAtPoint(clientX, clientY) {
+            // 1. 檢查是否在參考圖板上
+            if (refImage && refImage.src && !refImage.classList.contains('hidden') && refImage.naturalWidth > 0) {
+                const contRect = refContainer.getBoundingClientRect();
+                const imgRect = refImage.getBoundingClientRect();
+                if (
+                    clientX >= contRect.left && clientX <= contRect.right &&
+                    clientY >= contRect.top && clientY <= contRect.bottom &&
+                    clientX >= imgRect.left && clientX <= imgRect.right &&
+                    clientY >= imgRect.top && clientY <= imgRect.bottom
+                ) {
+                    const rCtx = ensureRefSampleCanvas();
+                    if (rCtx) {
+                        const px = Math.max(0, Math.min(refImage.naturalWidth - 1, Math.floor(((clientX - imgRect.left) / imgRect.width) * refImage.naturalWidth)));
+                        const py = Math.max(0, Math.min(refImage.naturalHeight - 1, Math.floor(((clientY - imgRect.top) / imgRect.height) * refImage.naturalHeight)));
+                        const p = rCtx.getImageData(px, py, 1, 1).data;
+                        return { hex: rgbToHex(p[0], p[1], p[2]), sourceCtx: rCtx, px, py, w: refImage.naturalWidth, h: refImage.naturalHeight, bg: [18, 18, 20] };
+                    }
+                }
+            }
+
+            // 2. 檢查是否在右側主預覽畫布上 (精準對應 object-fit: contain)
+            const cRect = canvas.getBoundingClientRect();
+            if (canvas.width > 0 && canvas.height > 0 && cRect.width > 0 && cRect.height > 0) {
+                const scale = Math.min(cRect.width / canvas.width, cRect.height / canvas.height);
+                const rw = canvas.width * scale;
+                const rh = canvas.height * scale;
+                const ox = cRect.left + (cRect.width - rw) / 2;
+                const oy = cRect.top + (cRect.height - rh) / 2;
+                if (clientX >= ox && clientX <= ox + rw && clientY >= oy && clientY <= oy + rh) {
+                    const px = Math.max(0, Math.min(canvas.width - 1, Math.floor((clientX - ox) / scale)));
+                    const py = Math.max(0, Math.min(canvas.height - 1, Math.floor((clientY - oy) / scale)));
+                    const p = ctx.getImageData(px, py, 1, 1).data;
+                    const bg = getBgFallbackColor(clientX, clientY);
+                    const a = p[3] / 255;
+                    const r = p[0] * a + bg[0] * (1 - a);
+                    const g = p[1] * a + bg[1] * (1 - a);
+                    const b = p[2] * a + bg[2] * (1 - a);
+                    return { hex: rgbToHex(r, g, b), sourceCtx: ctx, px, py, w: canvas.width, h: canvas.height, bg };
+                }
+            }
+            return null;
+        }
+
+        function updateLoupeDisplay(clientX, clientY, sample) {
+            if (!sample) {
+                eyedropperLoupeEl.classList.add('hidden');
+                return;
+            }
+            eyedropperLoupeEl.classList.remove('hidden');
+            const loupeW = 148, loupeH = 66;
+            let lx = clientX + 18;
+            let ly = clientY - loupeH - 12;
+            if (lx + loupeW > window.innerWidth - 8) lx = clientX - loupeW - 18;
+            if (ly < 8) ly = clientY + 18;
+            eyedropperLoupeEl.style.left = `${Math.round(lx)}px`;
+            eyedropperLoupeEl.style.top = `${Math.round(ly)}px`;
+
+            eyedropperLoupeSwatch.style.backgroundColor = sample.hex;
+            eyedropperLoupeHex.textContent = sample.hex.toUpperCase();
+
+            // 繪製 9x9 放大像素格
+            const grid = 9;
+            const half = 4;
+            const sx = sample.px - half;
+            const sy = sample.py - half;
+            eyedropperLoupeCtx.fillStyle = `rgb(${sample.bg[0]}, ${sample.bg[1]}, ${sample.bg[2]})`;
+            eyedropperLoupeCtx.fillRect(0, 0, grid, grid);
+            const readX = Math.max(0, sx);
+            const readY = Math.max(0, sy);
+            const readW = Math.min(sample.w, sx + grid) - readX;
+            const readH = Math.min(sample.h, sy + grid) - readY;
+            if (readW > 0 && readH > 0) {
+                const imgData = sample.sourceCtx.getImageData(readX, readY, readW, readH);
+                const d = imgData.data;
+                for (let y = 0; y < readH; y++) {
+                    for (let x = 0; x < readW; x++) {
+                        const idx = (y * readW + x) * 4;
+                        const a = d[idx + 3] / 255;
+                        const r = Math.round(d[idx] * a + sample.bg[0] * (1 - a));
+                        const g = Math.round(d[idx + 1] * a + sample.bg[1] * (1 - a));
+                        const b = Math.round(d[idx + 2] * a + sample.bg[2] * (1 - a));
+                        eyedropperLoupeCtx.fillStyle = `rgb(${r},${g},${b})`;
+                        eyedropperLoupeCtx.fillRect(readX - sx + x, readY - sy + y, 1, 1);
+                    }
+                }
+            }
+        }
+
+        function onInAppEyedropperMove(e) {
+            if (!eyedropperActiveTarget) return;
+            const sample = samplePixelAtPoint(e.clientX, e.clientY);
+            updateLoupeDisplay(e.clientX, e.clientY, sample);
+        }
+
+        function onInAppEyedropperClick(e) {
+            if (!eyedropperActiveTarget) return;
+            if (eyedropperBannerEl.contains(e.target)) return;
+            e.preventDefault();
+            e.stopPropagation();
+            const sample = samplePixelAtPoint(e.clientX, e.clientY);
+            if (sample) {
+                const target = eyedropperActiveTarget;
+                cancelInAppEyedropper();
+                applyColorToInput(target, sample.hex, true);
+                showToast(`已吸取顏色 ${sample.hex.toUpperCase()}`, 'success');
+            } else {
+                showToast('請點擊右側預覽畫布或參考圖板上的位置取色', 'info');
+            }
+        }
+
+        function onInAppEyedropperKeyDown(e) {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                cancelInAppEyedropper();
+            }
+        }
+
+        function onInAppEyedropperContextMenu(e) {
+            if (!eyedropperActiveTarget) return;
+            e.preventDefault();
+            cancelInAppEyedropper();
+        }
+
+        function startInAppEyedropper(targetInputEl) {
+            eyedropperActiveTarget = targetInputEl;
+            if (targetInputEl._hexUI) targetInputEl._hexUI.dropperBtn.classList.add('sampling');
+            document.body.classList.add('eyedropper-mode');
+            eyedropperBannerEl.classList.remove('hidden');
+            eyedropperBannerEl.classList.add('flex');
+            window.addEventListener('mousemove', onInAppEyedropperMove, true);
+            window.addEventListener('click', onInAppEyedropperClick, true);
+            window.addEventListener('keydown', onInAppEyedropperKeyDown, true);
+            window.addEventListener('contextmenu', onInAppEyedropperContextMenu, true);
+        }
+
+        window.cancelInAppEyedropper = function() {
+            if (eyedropperActiveTarget && eyedropperActiveTarget._hexUI) {
+                eyedropperActiveTarget._hexUI.dropperBtn.classList.remove('sampling');
+            }
+            eyedropperActiveTarget = null;
+            document.body.classList.remove('eyedropper-mode');
+            eyedropperBannerEl.classList.add('hidden');
+            eyedropperBannerEl.classList.remove('flex');
+            eyedropperLoupeEl.classList.add('hidden');
+            window.removeEventListener('mousemove', onInAppEyedropperMove, true);
+            window.removeEventListener('click', onInAppEyedropperClick, true);
+            window.removeEventListener('keydown', onInAppEyedropperKeyDown, true);
+            window.removeEventListener('contextmenu', onInAppEyedropperContextMenu, true);
+        };
+
+        // 初始化
+        initHexColorControls(document);
+        const savedBg = getSafeLocalStorage('titleProBgMode', 'gray-grid');
+        setBgMode(savedBg);
+
+        document.fonts.ready.then(() => {
+            renderPresets();
+            updateUIFromState();
+            requestRender();
+        });
+
+    </script>
+</body>
+</html>
